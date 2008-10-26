@@ -25,11 +25,7 @@ class NZB
     end
     
     def text(text)
-      @segment.message_id = text.strip if @segment
-    end
-    
-    def tag_end(name)
-      @segment = nil if name == 'segment'
+      @segment.message_id = text.strip and @segment = nil if @segment
     end
   end
 end
