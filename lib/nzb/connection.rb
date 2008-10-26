@@ -57,7 +57,7 @@ class NZB
     end
     
     def log(str)
-      puts "Client: #{str}"
+      puts "Client: #{str}" if ENV['LOG_DATA'] == 'true'
     end
   end
 end
