@@ -23,6 +23,7 @@ describe "NZB::File" do
   
   it "should return wether or not it's done" do
     @file.segments.length.times { @file.request_job }
+    @file.queue.should.be.empty
     @file.should.be.done
   end
 end
