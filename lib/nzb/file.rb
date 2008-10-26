@@ -1,8 +1,9 @@
 require 'nzb/segment'
+require 'tempfile'
 
 class NZB
   class File
-    attr_reader :segments, :queue, :processing
+    attr_reader :segments, :queue, :processing, :tmp_file
     
     def initialize
       @segments, @queue = [], []
@@ -10,6 +11,10 @@ class NZB
     
     def ==(other)
       @segments == other.segments
+    end
+    
+    def done?
+      @queue.empty?
     end
     
     def add_segment(attrs)
@@ -24,8 +29,9 @@ class NZB
       @processing = @queue.shift
     end
     
-    def done?
-      @queue.empty?
+    def write_data(data)
+      @tmp_file ||= Tempfile.new(object_id)
+      @tmp_file.write(data)
     end
   end
 end

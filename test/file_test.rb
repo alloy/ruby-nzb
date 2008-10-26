@@ -15,10 +15,20 @@ describe "NZB::File" do
     ]
   end
   
+  it "should not have an open file stream to a tmp file after initialization" do
+    @file.tmp_file.should.be nil
+  end
+  
   it "should return a segment to be processed" do
     @file.request_job.should == @file.segments.first
     @file.processing.should == @file.segments.first
     @file.queue.should == [@file.segments.last]
+  end
+  
+  it "should initialize a tmp file instance if it doesn't exist yet and write data to it" do
+    @file.write_data "Some data\r\n"
+    @file.tmp_file.rewind
+    @file.tmp_file.gets.should == "Some data\r\n"
   end
   
   it "should return wether or not it's done" do

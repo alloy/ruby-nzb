@@ -10,17 +10,20 @@ describe "NZB class" do
     NZB.clear_queue!
   end
   
-  it "should have added a new NZB to the queue" do
-    NZB.queued.last.path.should == fixture('ubuntu.nzb')
+  it "should add a new NZB to the queue" do
+    nzb = NZB.queue(fixture('ubuntu.nzb'))
+    nzb.path.should == fixture('ubuntu.nzb')
+    NZB.queued.last.should.be nzb
+  end
+  
+  it "should return a file" do
+    NZB.request_file.should == NZB.queued.last.files.first
   end
   
   it "should clear the queue" do
     NZB.clear_queue!
     NZB.queued.should.be.empty
-  end
-  
-  it "should return a file" do
-    NZB.request_file.should == NZB.queued.last.files.first
+    NZB.request_file.should.be nil
   end
 end
 

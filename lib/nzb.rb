@@ -7,7 +7,7 @@ class NZB
     end
     
     def queue(path)
-      queued << new(path)
+      (queued << new(path)).last
     end
     
     def clear_queue!
@@ -16,7 +16,9 @@ class NZB
     
     # This is going to be called by the connection(s).
     def request_file
-      queued.first.request_file
+      if nzb = queued.first
+        nzb.request_file
+      end
     end
   end
   
