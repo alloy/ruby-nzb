@@ -46,6 +46,16 @@ describe "NZB instance" do
     @nzb.queue.should == [@nzb.files.last]
   end
   
+  it "should return the working directory" do
+    NZB.result_directory = '/path/to/result/dir'
+    @nzb.working_directory.should == '/path/to/result/dir/ubuntu'
+  end
+  
+  it "should be done when the queue is empty" do
+    @nzb.queue.clear
+    @nzb.should.be.done
+  end
+  
   xit "should advance to the next file if the current one is done" do
   end
 end

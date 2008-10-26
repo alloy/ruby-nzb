@@ -2,6 +2,8 @@ require 'nzb/parser'
 
 class NZB
   class << self
+    attr_accessor :result_directory
+    
     def queued
       @queue ||= []
     end
@@ -29,8 +31,16 @@ class NZB
     @queue = (@files = Parser.new(@path).files).dup
   end
   
+  def working_directory
+    @working_directory ||= ::File.join(NZB.result_directory, ::File.basename(@path, '.nzb'))
+  end
+  
   # This is called by NZB.request_file
   def request_file
     @queue.shift
+  end
+  
+  def done?
+    @queue.empty?
   end
 end

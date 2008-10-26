@@ -38,9 +38,9 @@ describe "NZB::File" do
     
     @file.stubs(:done?).returns(true)
     @file.stubs(:nzb).returns(nzb)
-    nzb.stubs(:working_directory).returns('/final/destination/')
+    nzb.stubs(:working_directory).returns('/final/destination')
     
-    @file.expects(:`).with("uudeview -i -p '/final/destination/' '#{tmp_file}'")
+    @file.expects(:`).with("uudeview -i -p '/final/destination' '#{tmp_file}'")
     
     @file.write_data "Some more data\r\n"
     File.should.not.exist tmp_file
