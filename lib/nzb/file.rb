@@ -32,6 +32,16 @@ class NZB
     def write_data(data)
       @tmp_file ||= Tempfile.new(object_id)
       @tmp_file.write(data)
+      
+      if done?
+        @tmp_file.close
+        decode!
+        ::File.unlink(@tmp_file.path)
+      end
+    end
+    
+    def decode!
+      `uudeview -i -p '#{nzb.working_directory}' '#{@tmp_file.path}'`
     end
   end
 end

@@ -31,6 +31,21 @@ describe "NZB::File" do
     @file.tmp_file.gets.should == "Some data\r\n"
   end
   
+  it "should decode the file segments that were written to the tmp file and remove it" do
+    @file.write_data "Some data\r\n"
+    tmp_file = @file.tmp_file.path
+    nzb = mock('NZB')
+    
+    @file.stubs(:done?).returns(true)
+    @file.stubs(:nzb).returns(nzb)
+    nzb.stubs(:working_directory).returns('/final/destination/')
+    
+    @file.expects(:`).with("uudeview -i -p '/final/destination/' '#{tmp_file}'")
+    
+    @file.write_data "Some more data\r\n"
+    File.should.not.exist tmp_file
+  end
+  
   it "should return wether or not it's done" do
     @file.segments.length.times { @file.request_job }
     @file.queue.should.be.empty
