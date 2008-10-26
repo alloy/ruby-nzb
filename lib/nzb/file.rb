@@ -2,10 +2,10 @@ require 'nzb/segment'
 
 class NZB
   class File
-    attr_reader :segments
+    attr_reader :segments, :queue, :processing
     
-    def initialize(message_ids = nil)
-      @segments = []
+    def initialize
+      @segments, @queue = [], []
     end
     
     def ==(other)
@@ -15,7 +15,17 @@ class NZB
     def add_segment(attrs)
       segment = Segment.new(attrs)
       @segments << segment
+      @queue << segment
       segment
+    end
+    
+    # This is called by NZB::File
+    def request_job
+      @processing = @queue.shift
+    end
+    
+    def done?
+      @queue.empty?
     end
   end
 end
