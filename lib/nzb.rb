@@ -5,9 +5,7 @@ class NZB
   
   def initialize(path)
     @path = path
-    @files = Parser.new(@path).files
-    @queue = @files.dup
-    @processing = nil
+    @queue = (@files = Parser.new(@path).files).dup
   end
   
   # This is going to be called by the connection.
