@@ -18,6 +18,7 @@ class NZB
     
     # This is going to be called by the connection(s).
     def request_file
+      queued.shift if queued.first and queued.first.done?
       if nzb = queued.first
         nzb.request_file
       end

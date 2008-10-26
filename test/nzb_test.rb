@@ -3,7 +3,7 @@ require 'nzb'
 
 describe "NZB class" do
   before do
-    NZB.queue fixture('ubuntu.nzb')
+    @nzb = NZB.queue(fixture('ubuntu.nzb'))
   end
   
   after do
@@ -18,6 +18,12 @@ describe "NZB class" do
   
   it "should return a file" do
     NZB.request_file.should == NZB.queued.last.files.first
+  end
+  
+  it "should advance to the next NZB when the current one is done" do
+    @nzb.stubs(:done?).returns(true)
+    new_nzb = NZB.queue(fixture('small.nzb'))
+    NZB.request_file.should == new_nzb.files.first
   end
   
   it "should clear the queue" do
