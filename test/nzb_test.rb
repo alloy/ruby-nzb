@@ -61,7 +61,4 @@ describe "NZB instance" do
     @nzb.queue.clear
     @nzb.should.be.done
   end
-  
-  xit "should advance to the next file if the current one is done" do
-  end
 end
