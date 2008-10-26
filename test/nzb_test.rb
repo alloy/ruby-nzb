@@ -15,7 +15,7 @@ describe "NZB" do
     (@nzb.files.first.segments.length + @nzb.files.last.segments.length).should == 202
   end
   
-  it "should return a segment to be downloaded and add it to the “processing” array" do
+  it "should return a segment to be downloaded mark the file as “processing”" do
     @nzb.request_segment_job.should == @nzb.files.first.segments.first
     @nzb.queue.should == [@nzb.files.last]
     @nzb.processing.should == @nzb.files.first
