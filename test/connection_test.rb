@@ -35,7 +35,7 @@ describe "NZB::Connection" do
     connection.should.not.be.ready
   end
   
-  it "should be ready when we haven't received a server greeting yet" do
+  it "should be ready when we have received a server greeting" do
     connect!
     connection.should.be.ready
   end
