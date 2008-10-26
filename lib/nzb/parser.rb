@@ -1,5 +1,6 @@
 require 'rexml/document'
 require 'rexml/streamlistener'
+require 'nzb/file'
 
 class NZB
   class Parser
@@ -9,25 +10,26 @@ class NZB
     
     def initialize(path)
       @files = []
-      File.open(path) do |nzb|
+      ::File.open(path) do |nzb|
         REXML::Document.parse_stream(nzb, self)
       end
     end
     
     def tag_start(name, attrs)
-      if name == 'segments'
-        @record_text = true
-        @files << []
+      case name
+      when 'segments'
+        @files << NZB::File.new
+      when 'segment'
+        @segment = @files.last.add_segment(attrs)
       end
     end
     
-    def tag_end(name)
-      @record_text = false if name == 'segments'
+    def text(text)
+      @segment.message_id = text.strip if @segment
     end
     
-    def text(text)
-      return if !@record_text || text.strip.empty?
-      @files.last << text
+    def tag_end(name)
+      @segment = nil if name == 'segment'
     end
   end
 end

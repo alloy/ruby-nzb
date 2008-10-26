@@ -39,10 +39,13 @@ describe "NZB::Parser" do
   end
   
   it "should have parsed the correct files and segments" do
-    @parser.files.should == [
-      [@message_ids.first],
-      @message_ids
-    ]
+    file_with_1_segment = NZB::File.new
+    file_with_1_segment.add_segment('message_id' => @message_ids.first)
+    
+    file_with_3_segments = NZB::File.new
+    @message_ids.each { |id| file_with_3_segments.add_segment('message_id' => id) }
+    
+    @parser.files.should == [file_with_1_segment, file_with_3_segments]
   end
 end
 
@@ -53,20 +56,10 @@ describe "NZB::Parser, with a real NZB file" do
   end
   
   it "should have parsed the correct amount of files" do
-    @parser.files.length.should == number_of_files
+    @parser.files.length.should == 2
   end
   
   it "should have parsed the correct amount of segments" do
-    @parser.files.inject(0) { |sum, segments| sum += segments.length }.should == number_of_segments
-  end
-  
-  private
-  
-  def number_of_files
-    `cat #{@path} | grep '</file>'`.split("\n").length
-  end
-  
-  def number_of_segments
-    `cat #{@path} | grep '</segment>'`.split("\n").length
+    (@parser.files.first.segments.length + @parser.files.last.segments.length).should == 202
   end
 end
