@@ -58,6 +58,14 @@ class NZB
     @bytes ||= @files.inject(0) { |sum, file| sum += file.bytes }
   end
   
+  def downloaded_bytes
+    @files.inject(0) { |sum, file| sum += file.downloaded_bytes }
+  end
+  
+  def downloaded_percentage
+    (downloaded_bytes * 100.0) / bytes
+  end
+  
   def on_update(&on_update_callback)
     @on_update_callback = on_update_callback
   end

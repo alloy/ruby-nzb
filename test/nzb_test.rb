@@ -105,4 +105,33 @@ describe "NZB instance" do
   it "should return the total amount of bytes of all files" do
     @nzb.bytes.should == @nzb.files.inject(0) { |sum, file| sum += file.bytes }
   end
+  
+  it "should return the amount of bytes that have been downloaded" do
+    @nzb.downloaded_bytes.should == 0
+    @nzb.files.first.write_data "12345678\r\n"
+    @nzb.files.last.write_data "12345678\r\n"
+    @nzb.downloaded_bytes.should == 20
+  end
+  
+  it "should return the download completion percentage" do
+    @nzb.stubs(:bytes).returns(200)
+    
+    @nzb.stubs(:downloaded_bytes).returns(1)
+    @nzb.downloaded_percentage.should == 0.5
+    
+    @nzb.stubs(:downloaded_bytes).returns(2)
+    @nzb.downloaded_percentage.should == 1
+    
+    @nzb.stubs(:downloaded_bytes).returns(20)
+    @nzb.downloaded_percentage.should == 10
+    
+    @nzb.stubs(:downloaded_bytes).returns(100)
+    @nzb.downloaded_percentage.should == 50
+    
+    @nzb.stubs(:downloaded_bytes).returns(150)
+    @nzb.downloaded_percentage.should == 75
+    
+    @nzb.stubs(:downloaded_bytes).returns(200)
+    @nzb.downloaded_percentage.should == 100
+  end
 end
