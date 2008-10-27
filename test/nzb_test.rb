@@ -101,4 +101,8 @@ describe "NZB instance" do
   it "should not actually call the on_update callback if there is none" do
     lambda { @nzb.run_update_callback! }.should.not.raise
   end
+  
+  it "should return the total amount of bytes of all files" do
+    @nzb.bytes.should == @nzb.files.inject(0) { |sum, file| sum += file.bytes }
+  end
 end

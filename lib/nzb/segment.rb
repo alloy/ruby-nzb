@@ -6,7 +6,7 @@ class NZB
       def initialize(attributes)
         @message_id = attributes['message_id']
         @number = attributes['number']
-        @bytes = attributes['bytes']
+        @bytes = attributes['bytes'].to_i
       end
       
       def ==(other)

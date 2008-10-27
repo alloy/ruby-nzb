@@ -18,6 +18,10 @@ class NZB
       @queue.empty?
     end
     
+    def bytes
+      @bytes ||= @segments.inject(0) { |sum, segment| sum += segment.bytes }
+    end
+    
     def add_segment(attrs)
       segment = Segment.new(attrs)
       @segments << segment

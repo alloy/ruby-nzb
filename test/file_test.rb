@@ -14,8 +14,8 @@ describe "NZB::File" do
     @nzb.stubs(:run_update_callback!)
     
     @file = NZB::File.new(@nzb)
-    @file.add_segment('message_id' => '1')
-    @file.add_segment('message_id' => '2')
+    @file.add_segment('message_id' => '1', 'bytes' => '1')
+    @file.add_segment('message_id' => '2', 'bytes' => '2')
   end
   
   it "should add a segment" do
@@ -63,5 +63,9 @@ describe "NZB::File" do
     @file.segments.length.times { @file.request_job }
     @file.queue.should.be.empty
     @file.should.be.done
+  end
+  
+  it "should return the total amount of bytes of all segments" do
+    @file.bytes.should == 3
   end
 end

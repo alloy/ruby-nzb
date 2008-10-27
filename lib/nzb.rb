@@ -54,6 +54,10 @@ class NZB
     @queue.empty?
   end
   
+  def bytes
+    @bytes ||= @files.inject(0) { |sum, file| sum += file.bytes }
+  end
+  
   def on_update(&on_update_callback)
     @on_update_callback = on_update_callback
   end
