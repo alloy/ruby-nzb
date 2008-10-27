@@ -68,4 +68,9 @@ describe "NZB::File" do
   it "should return the total amount of bytes of all segments" do
     @file.bytes.should == 3
   end
+  
+  it "should keep track of the amount of bytes that were downloaded and written to the tmp file" do
+    @file.write_data "12345678\r\n12345678\r\n"
+    @file.downloaded_bytes.should == 20
+  end
 end

@@ -3,11 +3,12 @@ require 'tempfile'
 
 class NZB
   class File
-    attr_reader :nzb, :segments, :queue, :processing, :tmp_file
+    attr_reader :nzb, :segments, :queue, :processing, :tmp_file, :downloaded_bytes
     
     def initialize(nzb)
       @nzb = nzb
       @segments, @queue = [], []
+      @downloaded_bytes = 0
     end
     
     def ==(other)
@@ -37,6 +38,8 @@ class NZB
     def write_data(data)
       @tmp_file ||= Tempfile.new(object_id)
       @tmp_file.write(data)
+      
+      @downloaded_bytes += data.length
       
       if done?
         @tmp_file.close
