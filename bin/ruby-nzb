@@ -1,0 +1,38 @@
+#!/usr/bin/env ruby
+
+$: << File.expand_path('../../lib/', __FILE__)
+
+require 'rubygems'
+require 'nzb'
+require 'optparse'
+
+options = { :blocking => true }
+
+parser = OptionParser.new do |opts|
+  opts.banner = "Usage: #{__FILE__} --server news.example.com --output-directory /path/to/output [options] file1.nzb file2.nzb ..."
+  
+  opts.on('-s', '--server [HOST]', 'The news server to connect to') do |host|
+    options[:host] = host
+  end
+  
+  opts.on('-p', '--port [PORT]', Numeric, 'The port on which to connect to the news server') do |port|
+    options[:port] = port
+  end
+  
+  opts.on('-ps', '--pool-size', Numeric, 'The number of simultaneous connections to make to the news server') do |pool_size|
+    options[:pool_size] = pool_size
+  end
+  
+  opts.on('-o', '--output-directory [PATH]', 'The directory where the downloads should be stored') do |output_directory|
+    options[:output_directory] = output_directory
+  end
+end
+parser.parse!
+
+if options[:host] and options[:output_directory] and !ARGV.empty?
+  NZB.setup(options)
+  ARGV.each { |nzb_file| NZB.queue nzb_file }
+  NZB::Connection.start_pool!
+else
+  puts parser
+end
