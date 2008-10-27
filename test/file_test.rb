@@ -1,13 +1,6 @@
 require File.expand_path('../test_helper', __FILE__)
 require 'nzb/file'
 
-module Kernel
-  def fork
-    yield
-    123
-  end
-end
-
 describe "NZB::File" do
   before do
     @nzb = stub('NZB')
