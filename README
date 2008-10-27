@@ -1,4 +1,7 @@
 A simple Ruby NZB download/post-process library, with a very naive command line client.
 
-Requires EventMachine:
-$ gem install eventmachine
+Requires:
+* EventMachine:
+  $ gem install eventmachine
+* uudeview:
+  $ port/apt-get install uudeview
