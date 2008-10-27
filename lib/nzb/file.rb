@@ -40,13 +40,12 @@ class NZB
       @tmp_file.write(data)
       
       @downloaded_bytes += data.length
+      @nzb.run_update_callback!
       
       if done?
         @tmp_file.close
         post_process!
       end
-      
-      @nzb.run_update_callback!
     end
     
     # For now we fork to not stall the runloop. This might not work so great in a RubyCocoa app...
