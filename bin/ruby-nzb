@@ -31,7 +31,11 @@ parser.parse!
 
 if options[:host] and options[:output_directory] and !ARGV.empty?
   NZB.setup(options)
-  ARGV.each { |nzb_file| NZB.queue nzb_file }
+  ARGV.each do |nzb_file|
+    NZB.queue(nzb_file).on_update do |nzb|
+      puts "[#{File.basename(nzb.path)}] - [#{Time.now}]: got segment" ##{nzb.percentage_done}
+    end
+  end
   NZB::Connection.start_pool!
 else
   puts parser

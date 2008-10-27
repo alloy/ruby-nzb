@@ -11,6 +11,8 @@ end
 describe "NZB::File" do
   before do
     @nzb = stub('NZB')
+    @nzb.stubs(:run_update_callback!)
+    
     @file = NZB::File.new(@nzb)
     @file.add_segment('message_id' => '1')
     @file.add_segment('message_id' => '2')
@@ -39,17 +41,19 @@ describe "NZB::File" do
     @file.tmp_file.gets.should == "Some data\r\n"
   end
   
-  it "should decode the file segments that were written to the tmp file and remove it" do
+  it "should decode the file segments that were written to the tmp file and remove it and let the NZB instance know there was an update" do
     @file.write_data "Some data\r\n"
     tmp_file = @file.tmp_file.path
     nzb = mock('NZB')
     
     @file.stubs(:done?).returns(true)
-    @file.stubs(:nzb).returns(nzb)
+    @file.instance_variable_set(:@nzb, nzb)
     nzb.stubs(:output_directory).returns('/final/destination')
     
     Process.stubs(:detach)
     @file.expects(:`).with("uudeview -i -p '/final/destination' '#{tmp_file}'")
+    
+    nzb.expects(:run_update_callback!)
     
     @file.write_data "Some more data\r\n"
     File.should.not.exist tmp_file

@@ -85,4 +85,20 @@ describe "NZB instance" do
     @nzb.queue.clear
     @nzb.should.be.done
   end
+  
+  it "should take a on_update callback" do
+    counter = 0
+    
+    @nzb.on_update do |nzb|
+      nzb.should.be @nzb
+      counter += 1
+    end
+    @nzb.run_update_callback!
+    
+    counter.should.be 1
+  end
+  
+  it "should not actually call the on_update callback if there is none" do
+    lambda { @nzb.run_update_callback! }.should.not.raise
+  end
 end

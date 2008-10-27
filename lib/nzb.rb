@@ -31,7 +31,7 @@ class NZB
     end
   end
   
-  attr_reader :path, :files, :queue
+  attr_reader :path, :files, :queue, :on_update_callback
   
   def initialize(path)
     @path = path
@@ -52,5 +52,13 @@ class NZB
   
   def done?
     @queue.empty?
+  end
+  
+  def on_update(&on_update_callback)
+    @on_update_callback = on_update_callback
+  end
+  
+  def run_update_callback!
+    @on_update_callback.call(self) if @on_update_callback
   end
 end
