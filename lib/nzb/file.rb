@@ -50,10 +50,10 @@ class NZB
     
     # For now we fork to not stall the runloop. This might not work so great in a RubyCocoa app...
     def post_process!
-      Process.detach(fork do
-        `uudeview -i -p '#{@nzb.output_directory}' '#{@tmp_file.path}'`
+      Thread.new do
+        `uudeview -i -p '#{@nzb.output_directory}' '#{@tmp_file.path}' > /dev/null 2>&1`
         ::File.unlink(@tmp_file.path)
-      end)
+      end
     end
   end
 end

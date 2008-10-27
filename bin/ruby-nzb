@@ -29,14 +29,44 @@ parser = OptionParser.new do |opts|
 end
 parser.parse!
 
+def log_message(nzb, message)
+  "[#{File.basename(nzb.path)} (#{Time.now.strftime('%H:%M:%S')})]: #{message}"
+end
+
+begin
+  require 'curses'
+  require 'set'
+  
+  # A log method which uses Curses
+  def log(nzb, message)
+    @screen ||= Curses.init_screen
+    (@nzbs_on_screen ||= SortedSet.new) << nzb
+    
+    @nzbs_on_screen.each_with_index do |nzb_on_screen, index|
+      if nzb_on_screen == nzb
+        @screen.setpos(index, 1)
+        @screen.addstr(log_message(nzb, message))
+        Curses.refresh
+      end
+    end
+  end
+rescue LoadError
+  # A log method which simply prints if Curses is unavailable.
+  # Which is on windows if I understood correctly.
+  def log(nzb, message)
+    puts log_message(nzb, message)
+  end
+end
+
 if options[:host] and options[:output_directory] and !ARGV.empty?
   NZB.setup(options)
   ARGV.each do |nzb_file|
     NZB.queue(nzb_file).on_update do |nzb|
-      puts "[#{File.basename(nzb.path)} (#{Time.now.strftime('%H:%M:%S')})]: #{nzb.downloaded_percentage}%"
+      log(nzb, "#{ '%0.2f' % nzb.downloaded_percentage }%")
     end
   end
   NZB::Connection.start_pool!
 else
+  # Print banner
   puts parser
 end

@@ -50,13 +50,27 @@ describe "NZB::File" do
     @file.instance_variable_set(:@nzb, nzb)
     nzb.stubs(:output_directory).returns('/final/destination')
     
-    Process.stubs(:detach)
-    @file.expects(:`).with("uudeview -i -p '/final/destination' '#{tmp_file}'")
+    Thread.class_eval do
+      class << self
+        alias_method :new_before_test, :new
+        def new
+          yield
+        end
+      end
+    end
+    
+    @file.expects(:`).with("uudeview -i -p '/final/destination' '#{tmp_file}' > /dev/null 2>&1")
     
     nzb.expects(:run_update_callback!)
     
     @file.write_data "Some more data\r\n"
     File.should.not.exist tmp_file
+    
+    Thread.class_eval do
+      class << self
+        alias_method :new, :new_before_test
+      end
+    end
   end
   
   it "should return wether or not it's done" do
