@@ -1,6 +1,13 @@
 require File.expand_path('../test_helper', __FILE__)
 require 'nzb/file'
 
+module Kernel
+  def fork
+    yield
+    123
+  end
+end
+
 describe "NZB::File" do
   before do
     @nzb = stub('NZB')
@@ -41,6 +48,7 @@ describe "NZB::File" do
     @file.stubs(:nzb).returns(nzb)
     nzb.stubs(:output_directory).returns('/final/destination')
     
+    Process.stubs(:detach)
     @file.expects(:`).with("uudeview -i -p '/final/destination' '#{tmp_file}'")
     
     @file.write_data "Some more data\r\n"

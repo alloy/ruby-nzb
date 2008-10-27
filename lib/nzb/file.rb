@@ -36,13 +36,16 @@ class NZB
       
       if done?
         @tmp_file.close
-        decode!
-        ::File.unlink(@tmp_file.path)
+        post_process!
       end
     end
     
-    def decode!
-      `uudeview -i -p '#{nzb.output_directory}' '#{@tmp_file.path}'`
+    # For now we fork to not stall the runloop. This might not work so great in a RubyCocoa app...
+    def post_process!
+      Process.detach(fork do
+        `uudeview -i -p '#{nzb.output_directory}' '#{@tmp_file.path}'`
+        ::File.unlink(@tmp_file.path)
+      end)
     end
   end
 end
