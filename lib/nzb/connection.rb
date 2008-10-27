@@ -4,8 +4,26 @@ require 'eventmachine'
 class NZB
   class Connection < EventMachine::Connection
     class << self
+      attr_reader :pool
+      
+      def start_pool!
+        return if @pool
+        start_eventmachine_runloop! do
+          @pool = Array.new(NZB.pool_size) { connect(NZB.host, NZB.port) }
+        end
+      end
+      
       def connect(host, port)
         EventMachine.connect(host, port, self)
+      end
+      
+      def start_eventmachine_runloop!
+        if NZB.blocking
+          EventMachine.run { yield }
+        else
+          Thread.new { EventMachine.run {} }
+          yield
+        end
       end
     end
     
@@ -33,8 +51,9 @@ class NZB
       else
         @data << data
         if data =~ END_OF_MESSAGE
-          log "Write data: #{data}"
-          @file.write_data(data)
+          log "Writing data"
+          unescape_data!
+          @file.write_data(@data)
           
           @file = nil if @file.done?
           @data = ''
@@ -54,6 +73,10 @@ class NZB
       else
         close_connection
       end
+    end
+    
+    def unescape_data!
+      @data.gsub!(/\r\n\.\./, "\r\n.")
     end
     
     def log(str)

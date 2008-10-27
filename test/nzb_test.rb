@@ -10,6 +10,22 @@ describe "NZB class" do
     NZB.clear_queue!
   end
   
+  it "should take required and optional parameters to setup NZB" do
+    NZB.setup(:host => 'news.example.com')
+    NZB.host.should == 'news.example.com'
+    NZB.output_directory.should == TMP_DIR
+    NZB.port.should == 119
+    NZB.pool_size.should == 1
+    NZB.blocking.should == true
+    
+    NZB.setup(:port => 1119, :pool_size => 4, :blocking => false)
+    NZB.host.should == 'news.example.com'
+    NZB.output_directory.should == TMP_DIR
+    NZB.port.should == 1119
+    NZB.pool_size.should == 4
+    NZB.blocking.should == false
+  end
+  
   it "should add a new NZB to the queue" do
     nzb = NZB.queue(fixture('ubuntu.nzb'))
     nzb.path.should == fixture('ubuntu.nzb')
@@ -38,8 +54,21 @@ describe "NZB instance" do
     @nzb = NZB.new(fixture('ubuntu.nzb'))
   end
   
+  after do
+    FileUtils.rm_rf(TMP_DIR)
+  end
+  
   it "should initialize with a path to a NZB xml file" do
     @nzb.path.should == fixture('ubuntu.nzb')
+  end
+  
+  it "should return the working directory" do
+    @nzb.output_directory.should == File.join(TMP_DIR, 'ubuntu')
+  end
+  
+  it "should have created the working directory" do
+    File.should.exist @nzb.output_directory
+    File.should.be.directory @nzb.output_directory
   end
   
   it "should have parsed the files/segments from the NZB xml file" do
@@ -50,11 +79,6 @@ describe "NZB instance" do
   it "should return a file to be downloaded from the queue" do
     @nzb.request_file.should == @nzb.files.first
     @nzb.queue.should == [@nzb.files.last]
-  end
-  
-  it "should return the working directory" do
-    NZB.result_directory = '/path/to/result/dir'
-    @nzb.working_directory.should == '/path/to/result/dir/ubuntu'
   end
   
   it "should be done when the queue is empty" do

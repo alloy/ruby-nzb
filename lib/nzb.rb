@@ -1,8 +1,14 @@
 require 'nzb/parser'
+require 'nzb/connection'
+require 'fileutils'
 
 class NZB
   class << self
-    attr_accessor :result_directory
+    attr_accessor :host, :port, :pool_size, :output_directory, :blocking
+    
+    def setup(options)
+      ({ :port => 119, :pool_size => 1, :blocking => true }.merge(options)).each { |key, value| send("#{key}=", value) }
+    end
     
     def queued
       @queue ||= []
@@ -29,11 +35,14 @@ class NZB
   
   def initialize(path)
     @path = path
-    @queue = (@files = Parser.new(@path).files).dup
+    @files = Parser.new(self).files
+    @queue = @files.dup
+    
+    FileUtils.mkdir_p(output_directory) unless ::File.exist?(output_directory)
   end
   
-  def working_directory
-    @working_directory ||= ::File.join(NZB.result_directory, ::File.basename(@path, '.nzb'))
+  def output_directory
+    @output_directory ||= ::File.join(NZB.output_directory, ::File.basename(@path, '.nzb'))
   end
   
   # This is called by NZB.request_file

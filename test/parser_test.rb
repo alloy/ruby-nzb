@@ -29,9 +29,12 @@ describe "NZB::Parser" do
       </nzb>
     }
     
+    @path = '/some/file.nzb'
     @data = StringIO.new(xml, 'r')
-    File.stubs(:open).with('/some/file.nzb').yields(@data)
-    @parser = NZB::Parser.new('/some/file.nzb')
+    File.stubs(:open).with(@path).yields(@data)
+    @nzb = stub('NZB')
+    @nzb.stubs(:path).returns(@path)
+    @parser = NZB::Parser.new(@nzb)
   end
   
   after do
@@ -39,20 +42,26 @@ describe "NZB::Parser" do
   end
   
   it "should have parsed the correct files and segments" do
-    file_with_1_segment = NZB::File.new
+    file_with_1_segment = NZB::File.new(nil)
     file_with_1_segment.add_segment('message_id' => @message_ids.first)
     
-    file_with_3_segments = NZB::File.new
+    file_with_3_segments = NZB::File.new(nil)
     @message_ids.each { |id| file_with_3_segments.add_segment('message_id' => id) }
     
     @parser.files.should == [file_with_1_segment, file_with_3_segments]
+  end
+  
+  it "should have initialized all NZB::File instances with the NZB instance as their owner" do
+    @parser.files.all? { |file| file.nzb == @nzb }.should.be true
   end
 end
 
 describe "NZB::Parser, with a real NZB file" do
   before do
     @path = fixture('ubuntu.nzb')
-    @parser = NZB::Parser.new(@path)
+    @nzb = stub('NZB')
+    @nzb.stubs(:path).returns(@path)
+    @parser = NZB::Parser.new(@nzb)
   end
   
   it "should have parsed the correct amount of files" do

@@ -3,7 +3,8 @@ require 'nzb/file'
 
 describe "NZB::File" do
   before do
-    @file = NZB::File.new
+    @nzb = stub('NZB')
+    @file = NZB::File.new(@nzb)
     @file.add_segment('message_id' => '1')
     @file.add_segment('message_id' => '2')
   end
@@ -38,7 +39,7 @@ describe "NZB::File" do
     
     @file.stubs(:done?).returns(true)
     @file.stubs(:nzb).returns(nzb)
-    nzb.stubs(:working_directory).returns('/final/destination')
+    nzb.stubs(:output_directory).returns('/final/destination')
     
     @file.expects(:`).with("uudeview -i -p '/final/destination' '#{tmp_file}'")
     

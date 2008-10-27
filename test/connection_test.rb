@@ -2,7 +2,7 @@ require File.expand_path('../test_helper', __FILE__)
 require 'nzb'
 require 'nzb/connection'
 
-ENV['LOG_DATA'] = 'true' if $0 == __FILE__
+#ENV['LOG_DATA'] = 'true' if $0 == __FILE__
 
 class TestNNTPServer < EM::Connection
   Localhost = "127.0.0.1"
@@ -53,6 +53,7 @@ describe "NZB::Connection" do
   
   after do
     NZB.clear_queue!
+    NZB.blocking = false
   end
   
   it "should not be ready when we haven't received a server greeting yet" do
@@ -73,7 +74,7 @@ describe "NZB::Connection" do
   end
   
   it "should send the received data back to the NZB::File instance that's being processed, once a full segment has been received" do
-    data = "=yenc begin\r\nSome yEnc encoded data from segment %s\r\n=yenc end\r\n.\r\n"
+    data = "=yenc begin\r\nSome yEnc encoded data from segment %s\r\n..This double dot should become one.. However that last double dot should stay.\r\n=yenc end\r\n.\r\n"
     
     message_ids = %w{ file-1@segment-1 file-1@segment-2 file-2@segment-1 file-2@segment-2 }
     responses = message_ids.inject({}) do |hash, message_id|
@@ -82,11 +83,15 @@ describe "NZB::Connection" do
     end
     
     message_ids.first(2).each do |message_id|
-      @nzb.files.first.expects(:write_data).with(responses[message_id])
+      @nzb.files.first.expects(:write_data).with do |data|
+        data == responses[message_id].sub(/\r\n\.\./, "\r\n.")
+      end
     end
     
     message_ids.last(2).each do |message_id|
-      @nzb.files.last.expects(:write_data).with(responses[message_id])
+      @nzb.files.last.expects(:write_data).with do |data|
+        data == responses[message_id].sub(/\r\n\.\./, "\r\n.")
+      end
     end
     
     connect! :responses => responses
@@ -96,6 +101,48 @@ describe "NZB::Connection" do
     NZB.clear_queue!
     NZB::Connection.any_instance.expects(:close_connection)
     connect!
+  end
+  
+  it "should start an EventMachine runloop" do
+    NZB.blocking = true
+    Thread.expects(:new).never
+    EventMachine.expects(:run)
+    NZB::Connection.start_eventmachine_runloop! {}
+  end
+  
+  it "should start an EventMachine runloop in a new thread if it should not be blocking" do
+    NZB.blocking = false
+    Thread.expects(:new)
+    NZB::Connection.start_eventmachine_runloop! {}
+  end
+  
+  it "should start the EventMachine runloop when starting the pool" do
+    NZB::Connection.expects(:start_eventmachine_runloop!)
+    NZB::Connection.start_pool!
+  end
+  
+  it "should start a pool of connections" do
+    EventMachine.stubs(:run)
+    NZB::Connection.instance_variable_set(:@pool, nil)
+    
+    NZB.setup(:host => 'news.example.com', :blocking => false)
+    NZB::Connection.expects(:connect).with('news.example.com', 119).times(1).returns('connection')
+    NZB::Connection.start_pool!
+    NZB::Connection.pool.should == %w{ connection }
+    
+    NZB::Connection.instance_variable_set(:@pool, nil)
+    
+    NZB.setup(:host => 'news.example.com', :pool_size => 2, :port => 1119, :blocking => false)
+    NZB::Connection.expects(:connect).with('news.example.com', 1119).times(2).returns('connection')
+    NZB::Connection.start_pool!
+    NZB::Connection.pool.should == %w{ connection connection }
+  end
+  
+  it "should not start a new pool if one is already running" do
+    NZB::Connection.stubs(:connect)
+    NZB::Connection.start_pool!
+    NZB::Connection.expects(:connect).never
+    NZB::Connection.start_pool!
   end
   
   private

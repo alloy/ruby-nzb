@@ -8,17 +8,18 @@ class NZB
     
     attr_reader :files
     
-    def initialize(path)
+    def initialize(nzb)
+      @nzb = nzb
       @files = []
-      ::File.open(path) do |nzb|
-        REXML::Document.parse_stream(nzb, self)
+      ::File.open(@nzb.path) do |nzb_file|
+        REXML::Document.parse_stream(nzb_file, self)
       end
     end
     
     def tag_start(name, attrs)
       case name
       when 'segments'
-        @files << NZB::File.new
+        @files << NZB::File.new(@nzb)
       when 'segment'
         @segment = @files.last.add_segment(attrs)
       end

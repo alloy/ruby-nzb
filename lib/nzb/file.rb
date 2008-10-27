@@ -3,9 +3,10 @@ require 'tempfile'
 
 class NZB
   class File
-    attr_reader :segments, :queue, :processing, :tmp_file
+    attr_reader :nzb, :segments, :queue, :processing, :tmp_file
     
-    def initialize
+    def initialize(nzb)
+      @nzb = nzb
       @segments, @queue = [], []
     end
     
@@ -41,7 +42,7 @@ class NZB
     end
     
     def decode!
-      `uudeview -i -p '#{nzb.working_directory}' '#{@tmp_file.path}'`
+      `uudeview -i -p '#{nzb.output_directory}' '#{@tmp_file.path}'`
     end
   end
 end
