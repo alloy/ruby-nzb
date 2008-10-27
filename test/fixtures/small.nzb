@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE nzb PUBLIC "-//newzBin//DTD NZB 0.9//EN" "http://www.newzbin.com/DTD/nzb/nzb-0.9.dtd">
+<nzb xmlns="http://www.newzbin.com/DTD/2003/nzb">
+	<file poster="Yenc@power-post.org Yenc-PP-A&amp;A" date="1224233256" subject="(Posted By Rom) [02/29] - &quot;ubuntu-8.04.1-desktop-i386.part02.rar&quot; yEnc (1/101)">
+	<groups>
+		<group>alt.binaries.cd.image</group>
+	</groups>
+	<segments>
+		<segment bytes="258635" number="1">file-1@segment-1</segment>
+		<segment bytes="258677" number="2">file-1@segment-2</segment>
+	</segments>
+	</file>
+	<file poster="Yenc@power-post.org Yenc-PP-A&amp;A" date="1224233256" subject="(Posted By Rom) [01/29] - &quot;ubuntu-8.04.1-desktop-i386.part01.rar&quot; yEnc (1/101)">
+	<groups>
+		<group>alt.binaries.cd.image</group>
+	</groups>
+	<segments>
+		<segment bytes="258840" number="1">file-2@segment-1</segment>
+		<segment bytes="258664" number="2">file-2@segment-2</segment>
+	</segments>
+	</file>
+</nzb>
