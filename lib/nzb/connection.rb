@@ -4,12 +4,18 @@ require 'eventmachine'
 class NZB
   class Connection < EventMachine::Connection
     class << self
-      attr_reader :pool
+      def pool
+        @pool ||= []
+      end
       
       def start_pool!
-        return if @pool
-        start_eventmachine_runloop! do
-          @pool = Array.new(NZB.pool_size) { connect(NZB.host, NZB.port) }
+        return if pool.length == NZB.pool_size
+        start_eventmachine_runloop! { fill_pool! }
+      end
+      
+      def fill_pool!
+        (NZB.pool_size - pool.length).times do
+          pool << connect(NZB.host, NZB.port)
         end
       end
       
@@ -17,11 +23,25 @@ class NZB
         EventMachine.connect(host, port, self)
       end
       
+      def connection_closed(connection)
+        pool.delete(connection)
+      end
+      
+      FILL_POOL_TIMER = (lambda do
+        EventMachine::PeriodicTimer.new(2) do
+          NZB::Connection.fill_pool!
+        end
+      end)
+      
       def start_eventmachine_runloop!
+        return if EventMachine.reactor_running?
         if NZB.blocking
-          EventMachine.run { yield }
+          EventMachine.run do
+            FILL_POOL_TIMER.call
+            yield
+          end
         else
-          Thread.new { EventMachine.run {} }
+          Thread.new { EventMachine.run { FILL_POOL_TIMER.call } }
           yield
         end
       end
@@ -92,6 +112,7 @@ class NZB
     
     def unbind
       puts "Closing connection."
+      NZB::Connection.connection_closed(self)
     end
     
     def log(str)

@@ -66,7 +66,7 @@ class NZB
   end
   
   def downloaded_bytes
-    @files.inject(0) { |sum, file| p file.downloaded_bytes; sum += file.downloaded_bytes }
+    @files.inject(0) { |sum, file| sum += file.downloaded_bytes }
   end
   
   def downloaded_percentage

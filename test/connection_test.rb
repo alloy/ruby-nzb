@@ -103,10 +103,24 @@ describe "NZB::Connection" do
     connect!
   end
   
+  it "should report that it's closing" do
+    NZB.clear_queue!
+    connect! do
+      NZB::Connection.pool << connection
+    end
+    NZB::Connection.pool.should.not.include connection
+  end
+  
   it "should start an EventMachine runloop" do
     NZB.blocking = true
     Thread.expects(:new).never
     EventMachine.expects(:run)
+    NZB::Connection.start_eventmachine_runloop! {}
+  end
+  
+  it "should not start a second EventMachine runloop" do
+    EventMachine.stubs(:reactor_running?).returns(true)
+    EventMachine.expects(:run).never
     NZB::Connection.start_eventmachine_runloop! {}
   end
   
@@ -138,11 +152,37 @@ describe "NZB::Connection" do
     NZB::Connection.pool.should == %w{ connection connection }
   end
   
-  it "should not start a new pool if one is already running" do
-    NZB::Connection.stubs(:connect)
+  it "should fill the pool up to the maximum" do
+    NZB.stubs(:pool_size).returns(4)
+    NZB::Connection.pool.clear
+    NZB::Connection.stubs(:start_eventmachine_runloop!).yields
+    
+    NZB::Connection.expects(:connect).returns('connection').times(6)
+    
     NZB::Connection.start_pool!
-    NZB::Connection.expects(:connect).never
+    NZB::Connection.pool.should == Array.new(4) { 'connection' }
+    
+    2.times { NZB::Connection.pool.pop }
+    
     NZB::Connection.start_pool!
+    NZB::Connection.pool.should == Array.new(4) { 'connection' }
+  end
+  
+  it "should start an EventMachine PeriodicTimer which checks if we are using all available connections in blocking mode" do
+    NZB.blocking = true
+    EventMachine.stubs(:run).yields
+    EventMachine::PeriodicTimer.expects(:new).with(2).yields
+    NZB::Connection.expects(:fill_pool!)
+    NZB::Connection.start_eventmachine_runloop! {}
+  end
+  
+  it "should start an EventMachine PeriodicTimer which checks if we are using all available connections in non blocking mode" do
+    NZB.blocking = false
+    Thread.stubs(:new).yields
+    EventMachine.stubs(:run).yields
+    EventMachine::PeriodicTimer.expects(:new).with(2).yields
+    NZB::Connection.expects(:fill_pool!)
+    NZB::Connection.start_eventmachine_runloop! {}
   end
   
   private

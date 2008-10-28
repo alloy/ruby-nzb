@@ -47,7 +47,7 @@ describe "NZB::File" do
     File.dirname(@file.tmp_file.path).should == File.join(@nzb.output_directory, '.work')
   end
   
-  it "should decode the file segments that were written to the tmp file and remove it and let the NZB instance know there was an update" do
+  xit "should decode the file segments that were written to the tmp file and remove it and let the NZB instance know there was an update" do
     @file.request_job
     
     @file.write_data "Some data\r\n"
