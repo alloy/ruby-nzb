@@ -61,35 +61,21 @@ class NZB
     end
     
     def done_post_processing(output)
+      ::File.unlink(@tmp_file.path)
+      
       puts "Done post processing file!"
+      case output
+      when /File successfully written/m, /Note: No encoded data found/m
+        puts 'File successfully written'
+      else
+        puts "Unknown uudeview output: #{output.inspect}"
+      end
     end
     
-    # For now we fork to not stall the runloop. This might not work so great in a RubyCocoa app...
     def post_process!
-      # EventMachine.spawn do |file, output_directory, tmp_file|
-      #   puts 'post_process!'
-      #   
-      #   output = `uudeview -i -d -p '#{output_directory}' '#{tmp_file}' 2>&1`
-      #   case output
-      #   when /File successfully written/m, /Note: No encoded data found/m
-      #     puts 'File successfully written'
-      #   else
-      #     puts "Unknown uudeview output: #{output.inspect}"
-      #   end
-      #   ::File.unlink(tmp_file)
-      #   #file.done_post_processing(output)
-      # end.notify(self, @nzb.output_directory, @tmp_file.path)
-      
-      Thread.new do
-        output = `uudeview -i -d -p '#{@nzb.output_directory}' '#{@tmp_file.path}' 2>&1`
-        case output
-        when /File successfully written/m, /Note: No encoded data found/m
-          puts 'File successfully written'
-        else
-          puts "Unknown uudeview output: #{output.inspect}"
-        end
-        ::File.unlink(@tmp_file.path)
-      end
+      process = lambda { `uudeview -i -d -p '#{@nzb.output_directory}' '#{@tmp_file.path}' 2>&1` }
+      callback = lambda { |output| done_post_processing(output) }
+      EventMachine.defer(process, callback)
     end
   end
 end

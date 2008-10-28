@@ -56,7 +56,7 @@ describe "NZB::File" do
     @file.write_data "Some more data\r\n"
   end
   
-  xit "should spawn a process which handles the post processing and reports back to the NZB::File instance when done" do
+  it "should defer a process which handles the post processing and reports back to the NZB::File instance when done" do
     @file.request_job
     @file.write_data "Some data\r\n"
     nzb = mock('NZB')
@@ -64,16 +64,18 @@ describe "NZB::File" do
     @file.instance_variable_set(:@nzb, nzb)
     tmp_file = @file.tmp_file.path
     
-    spawned_process = mock('Spawn')
-    EventMachine.expects(:spawn).returns(spawned_process).yields(@file, nzb.output_directory, tmp_file)
-    spawned_process.expects(:notify).with(@file, nzb.output_directory, tmp_file)
+    EventMachine.expects(:defer).with do |process, callback|
+      callback.call(process.call)
+      true
+    end
+    
     @file.expects(:`).with("uudeview -i -d -p '/final/destination' '#{tmp_file}' 2>&1").returns('output')
     @file.expects(:done_post_processing).with('output')
     
     @file.post_process!
   end
   
-  xit "should cleanup when done with post processing" do
+  it "should cleanup when done with post processing" do
     @file.request_job
     @file.write_data "Some data\r\n"
     tmp_file = @file.tmp_file.path
