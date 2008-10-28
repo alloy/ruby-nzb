@@ -167,6 +167,8 @@ describe "NZB::Connection" do
   end
   
   it "should fill the pool up to the maximum" do
+    NZB.queue(fixture('ubuntu.nzb'))
+    
     NZB.stubs(:pool_size).returns(4)
     NZB::Connection.pool.clear
     NZB::Connection.stubs(:start_eventmachine_runloop!).yields

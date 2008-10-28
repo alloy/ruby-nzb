@@ -51,7 +51,7 @@ class NZB
       # For now it's good enough.
       @downloaded_bytes += @processing.bytes
       
-      # FIXME: This might need to be deferred
+      # FIXME: This might need to be spawned
       @nzb.run_update_callback!
       
       if done?
@@ -60,10 +60,34 @@ class NZB
       end
     end
     
+    def done_post_processing(output)
+      puts "Done post processing file!"
+    end
+    
     # For now we fork to not stall the runloop. This might not work so great in a RubyCocoa app...
     def post_process!
+      # EventMachine.spawn do |file, output_directory, tmp_file|
+      #   puts 'post_process!'
+      #   
+      #   output = `uudeview -i -d -p '#{output_directory}' '#{tmp_file}' 2>&1`
+      #   case output
+      #   when /File successfully written/m, /Note: No encoded data found/m
+      #     puts 'File successfully written'
+      #   else
+      #     puts "Unknown uudeview output: #{output.inspect}"
+      #   end
+      #   ::File.unlink(tmp_file)
+      #   #file.done_post_processing(output)
+      # end.notify(self, @nzb.output_directory, @tmp_file.path)
+      
       Thread.new do
-        `uudeview -i -d -p '#{@nzb.output_directory}' '#{@tmp_file.path}'` # > /dev/null 2>&1
+        output = `uudeview -i -d -p '#{@nzb.output_directory}' '#{@tmp_file.path}' 2>&1`
+        case output
+        when /File successfully written/m, /Note: No encoded data found/m
+          puts 'File successfully written'
+        else
+          puts "Unknown uudeview output: #{output.inspect}"
+        end
         ::File.unlink(@tmp_file.path)
       end
     end

@@ -42,38 +42,44 @@ describe "NZB::File" do
     File.dirname(@file.tmp_file.path).should == File.join(@nzb.output_directory, '.work')
   end
   
-  xit "should decode the file segments that were written to the tmp file and remove it and let the NZB instance know there was an update" do
+  it "should start the post process task when the last data has been written to the tmp file" do
     @file.request_job
-    
     @file.write_data "Some data\r\n"
-    tmp_file = @file.tmp_file.path
     nzb = mock('NZB')
+    @file.instance_variable_set(:@nzb, nzb)
     
     @file.stubs(:done?).returns(true)
-    @file.instance_variable_set(:@nzb, nzb)
-    nzb.stubs(:output_directory).returns('/final/destination')
-    
-    Thread.class_eval do
-      class << self
-        alias_method :new_before_test, :new
-        def new
-          yield
-        end
-      end
-    end
-    
-    @file.expects(:`).with("uudeview -i -p '/final/destination' '#{tmp_file}' > /dev/null 2>&1")
     
     nzb.expects(:run_update_callback!)
+    @file.expects(:post_process!)
     
     @file.write_data "Some more data\r\n"
-    File.should.not.exist tmp_file
+  end
+  
+  xit "should spawn a process which handles the post processing and reports back to the NZB::File instance when done" do
+    @file.request_job
+    @file.write_data "Some data\r\n"
+    nzb = mock('NZB')
+    nzb.stubs(:output_directory).returns('/final/destination')
+    @file.instance_variable_set(:@nzb, nzb)
+    tmp_file = @file.tmp_file.path
     
-    Thread.class_eval do
-      class << self
-        alias_method :new, :new_before_test
-      end
-    end
+    spawned_process = mock('Spawn')
+    EventMachine.expects(:spawn).returns(spawned_process).yields(@file, nzb.output_directory, tmp_file)
+    spawned_process.expects(:notify).with(@file, nzb.output_directory, tmp_file)
+    @file.expects(:`).with("uudeview -i -d -p '/final/destination' '#{tmp_file}' 2>&1").returns('output')
+    @file.expects(:done_post_processing).with('output')
+    
+    @file.post_process!
+  end
+  
+  xit "should cleanup when done with post processing" do
+    @file.request_job
+    @file.write_data "Some data\r\n"
+    tmp_file = @file.tmp_file.path
+    
+    @file.done_post_processing('output')
+    File.should.not.exist tmp_file
   end
   
   it "should return wether or not it's done" do
