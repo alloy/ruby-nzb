@@ -1,4 +1,3 @@
-* Re-queue a segment to a file and re-queue the file to the NZB instance queue if a connection closes.
 * Don't make any new connections when the NZB queue is empty.
 * Add some callback for when the NZB queue is empty, so done. So the command line client can quit.
 * Need to add a way to resume. Maybe marshal dump the NZB instances to their work directories
