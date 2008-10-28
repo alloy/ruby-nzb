@@ -27,22 +27,22 @@ class NZB
         pool.delete(connection)
       end
       
-      FILL_POOL_TIMER = (lambda do
-        EventMachine::PeriodicTimer.new(2) do
-          NZB::Connection.fill_pool!
-        end
-      end)
-      
       def start_eventmachine_runloop!
         return if EventMachine.reactor_running?
         if NZB.blocking
           EventMachine.run do
-            FILL_POOL_TIMER.call
+            start_fill_pool_timer!
             yield
           end
         else
-          Thread.new { EventMachine.run { FILL_POOL_TIMER.call } }
+          Thread.new { EventMachine.run { start_fill_pool_timer! } }
           yield
+        end
+      end
+      
+      def start_fill_pool_timer!
+        EventMachine::PeriodicTimer.new(2) do
+          NZB::Connection.fill_pool!
         end
       end
     end
