@@ -49,9 +49,17 @@ describe "NZB class" do
   end
   
   it "should return the total number of queued files" do
+    NZB.queued.first.queue.shift
+    
     NZB.queue(fixture('small.nzb'))
-    NZB.number_of_queued_files.should == NZB.queued.first.files.length + NZB.queued.last.files.length
+    NZB.number_of_queued_files.should == NZB.queued.first.files.length + NZB.queued.last.files.length - 1
   end
+  
+  # it "should not count more than the given max amount of queued files" do
+  #   nzb = NZB.queue(fixture('small.nzb'))
+  #   nzb.expects(:)
+  #   NZB.number_of_queued_files(2).should
+  # end
 end
 
 describe "NZB instance" do

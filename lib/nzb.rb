@@ -23,7 +23,7 @@ class NZB
     end
     
     def number_of_queued_files
-      @queue.inject(0) { |sum, nzb| sum + nzb.files.length }
+      @queue.inject(0) { |sum, nzb| sum + nzb.queue.length }
     end
     
     # This is going to be called by the connection(s).
