@@ -1,0 +1,3 @@
+* Need to start a timer which checks if we need to refill the connection pool.
+* Need to add a way to resume. Maybe marshal dump the NZB instances to their work directories
+  ad reload those if they exist.
