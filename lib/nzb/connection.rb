@@ -33,6 +33,8 @@ class NZB
       super
       @ready = false
       @data = ''
+      
+      puts "Opening connection."
     end
     
     def ready?
@@ -86,6 +88,10 @@ class NZB
       @data.gsub!(/\r\n\.\./, "\r\n.")
       # @data.gsub!(/^222.+end=\d+\r\n/m, '')
       # @data.gsub!(/\r\n=yend.+\r\n\.\r\n$/, '')
+    end
+    
+    def unbind
+      puts "Closing connection."
     end
     
     def log(str)

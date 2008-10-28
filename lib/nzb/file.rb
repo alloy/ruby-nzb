@@ -36,7 +36,7 @@ class NZB
     end
     
     def write_data(data)
-      @tmp_file ||= Tempfile.new(object_id)
+      @tmp_file ||= Tempfile.new(object_id, ::File.join(@nzb.work_directory))
       @tmp_file.write(data)
       
       # FIXME: This is cheating, as we use the bytes from the segment,

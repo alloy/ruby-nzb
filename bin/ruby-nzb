@@ -19,7 +19,7 @@ parser = OptionParser.new do |opts|
     options[:port] = port
   end
   
-  opts.on('-ps', '--pool-size', Numeric, 'The number of simultaneous connections to make to the news server') do |pool_size|
+  opts.on('-t', '--threads [SIZE]', Numeric, 'The number of simultaneous connections to make to the news server') do |pool_size|
     options[:pool_size] = pool_size
   end
   
@@ -50,7 +50,7 @@ begin
     
     @nzbs_on_screen.each_with_index do |nzb_on_screen, index|
       if nzb_on_screen == nzb
-        @screen.setpos(index, 1)
+        @screen.setpos(index, 0)
         @screen.addstr(log_message(nzb, message))
         Curses.refresh
       end

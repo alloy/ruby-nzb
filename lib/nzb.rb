@@ -38,11 +38,18 @@ class NZB
     @files = Parser.new(self).files
     @queue = @files.dup
     
-    FileUtils.mkdir_p(output_directory) unless ::File.exist?(output_directory)
+    unless ::File.exist?(output_directory)
+      FileUtils.mkdir_p(output_directory)
+      FileUtils.mkdir_p(work_directory)
+    end
   end
   
   def output_directory
     @output_directory ||= ::File.join(NZB.output_directory, ::File.basename(@path, '.nzb'))
+  end
+  
+  def work_directory
+    @work_directory ||= ::File.join(output_directory, '.work')
   end
   
   # This is called by NZB.request_file
@@ -59,7 +66,7 @@ class NZB
   end
   
   def downloaded_bytes
-    @files.inject(0) { |sum, file| sum += file.downloaded_bytes }
+    @files.inject(0) { |sum, file| p file.downloaded_bytes; sum += file.downloaded_bytes }
   end
   
   def downloaded_percentage

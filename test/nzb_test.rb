@@ -62,13 +62,17 @@ describe "NZB instance" do
     @nzb.path.should == fixture('ubuntu.nzb')
   end
   
-  it "should return the working directory" do
+  it "should return the output and work directory" do
     @nzb.output_directory.should == File.join(TMP_DIR, 'ubuntu')
+    @nzb.work_directory.should == File.join(@nzb.output_directory, '.work')
   end
   
-  it "should have created the working directory" do
+  it "should have created the output and work directory" do
     File.should.exist @nzb.output_directory
     File.should.be.directory @nzb.output_directory
+    
+    File.should.exist @nzb.work_directory
+    File.should.be.directory @nzb.work_directory
   end
   
   it "should have parsed the files/segments from the NZB xml file" do
@@ -106,11 +110,15 @@ describe "NZB instance" do
     @nzb.bytes.should == @nzb.files.inject(0) { |sum, file| sum += file.bytes }
   end
   
-  it "should return the amount of bytes that have been downloaded" do
+  xit "should return the amount of bytes that have been downloaded" do
     @nzb.downloaded_bytes.should == 0
-    @nzb.files.first.write_data "12345678\r\n"
-    @nzb.files.last.write_data "12345678\r\n"
-    @nzb.downloaded_bytes.should == 20
+    
+    segment = @nzb.files.first
+    segment.request_job
+    segment.stubs(:bytes).returns(10)
+    segment.write_data "12345678\r\n"
+    
+    @nzb.downloaded_bytes.should == segment.bytes
   end
   
   it "should return the download completion percentage" do

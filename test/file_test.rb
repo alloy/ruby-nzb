@@ -3,12 +3,22 @@ require 'nzb/file'
 
 describe "NZB::File" do
   before do
+    output_directory = File.join(TMP_DIR, 'name_of_nzb')
+    work_directory = File.join(output_directory, '.work')
+    FileUtils.mkdir_p(work_directory)
+    
     @nzb = stub('NZB')
     @nzb.stubs(:run_update_callback!)
+    @nzb.stubs(:output_directory).returns(output_directory)
+    @nzb.stubs(:work_directory).returns(work_directory)
     
     @file = NZB::File.new(@nzb)
     @file.add_segment('message_id' => '1', 'bytes' => '1')
     @file.add_segment('message_id' => '2', 'bytes' => '2')
+  end
+  
+  after do
+    FileUtils.rm_rf TMP_DIR
   end
   
   it "should add a segment" do
@@ -29,12 +39,17 @@ describe "NZB::File" do
   end
   
   it "should initialize a tmp file instance if it doesn't exist yet and write data to it" do
+    @file.request_job
+    
     @file.write_data "Some data\r\n"
     @file.tmp_file.rewind
     @file.tmp_file.gets.should == "Some data\r\n"
+    File.dirname(@file.tmp_file.path).should == File.join(@nzb.output_directory, '.work')
   end
   
   it "should decode the file segments that were written to the tmp file and remove it and let the NZB instance know there was an update" do
+    @file.request_job
+    
     @file.write_data "Some data\r\n"
     tmp_file = @file.tmp_file.path
     nzb = mock('NZB')
@@ -77,7 +92,8 @@ describe "NZB::File" do
   end
   
   it "should keep track of the amount of bytes that were downloaded and written to the tmp file" do
-    @file.write_data "12345678\r\n12345678\r\n"
-    @file.downloaded_bytes.should == 20
+    segment = @file.request_job
+    @file.write_data ""
+    @file.downloaded_bytes.should == segment.bytes
   end
 end
