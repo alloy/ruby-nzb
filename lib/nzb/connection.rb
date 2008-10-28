@@ -14,7 +14,8 @@ class NZB
       end
       
       def fill_pool!
-        (NZB.pool_size - pool.length).times do
+        max = (NZB.number_of_queued_files < NZB.pool_size) ? NZB.number_of_queued_files : NZB.pool_size
+        (max - pool.length).times do
           pool << connect(NZB.host, NZB.port)
         end
       end

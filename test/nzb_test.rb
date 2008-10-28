@@ -47,6 +47,11 @@ describe "NZB class" do
     NZB.queued.should.be.empty
     NZB.request_file.should.be nil
   end
+  
+  it "should return the total number of queued files" do
+    NZB.queue(fixture('small.nzb'))
+    NZB.number_of_queued_files.should == NZB.queued.first.files.length + NZB.queued.last.files.length
+  end
 end
 
 describe "NZB instance" do

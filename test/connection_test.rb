@@ -182,6 +182,15 @@ describe "NZB::Connection" do
     NZB::Connection.pool.should == Array.new(4) { 'connection' }
   end
   
+  it "should not fill up the pool more than necessary" do
+    NZB.stubs(:pool_size).returns(4)
+    NZB::Connection.pool.clear
+    
+    NZB::Connection.expects(:connect).returns('connection').times(2)
+    NZB::Connection.fill_pool!
+    NZB::Connection.pool.should == Array.new(2) { 'connection' }
+  end
+  
   it "should start an EventMachine PeriodicTimer which checks if we are using all available connections in blocking mode" do
     NZB.blocking = true
     EventMachine.stubs(:run).yields

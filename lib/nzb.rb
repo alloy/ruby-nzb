@@ -22,6 +22,10 @@ class NZB
       @queue = []
     end
     
+    def number_of_queued_files
+      @queue.inject(0) { |sum, nzb| sum + nzb.files.length }
+    end
+    
     # This is going to be called by the connection(s).
     def request_file
       queued.shift if queued.first and queued.first.done?
@@ -67,11 +71,11 @@ class NZB
   end
   
   def bytes
-    @bytes ||= @files.inject(0) { |sum, file| sum += file.bytes }
+    @bytes ||= @files.inject(0) { |sum, file| sum + file.bytes }
   end
   
   def downloaded_bytes
-    @files.inject(0) { |sum, file| sum += file.downloaded_bytes }
+    @files.inject(0) { |sum, file| sum + file.downloaded_bytes }
   end
   
   def downloaded_percentage
