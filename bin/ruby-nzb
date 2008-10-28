@@ -26,6 +26,10 @@ parser = OptionParser.new do |opts|
   opts.on('-o', '--output-directory [PATH]', 'The directory where the downloads should be stored') do |output_directory|
     options[:output_directory] = output_directory
   end
+  
+  opts.on('-c', '--disable-curses', 'Disable the usage of Curses and simply prints a line for each status update') do |disable_curses|
+    options[:disable_curses] = disable_curses
+  end
 end
 parser.parse!
 
@@ -34,6 +38,8 @@ def log_message(nzb, message)
 end
 
 begin
+  raise LoadError if options.delete(:disable_curses)
+  
   require 'curses'
   require 'set'
   
