@@ -35,6 +35,12 @@ class NZB
       @processing = @queue.shift
     end
     
+    def requeue!
+      @queue.unshift @processing
+      @processing = nil
+      @nzb.requeue self
+    end
+    
     def write_data(data)
       @tmp_file ||= Tempfile.new(object_id, ::File.join(@nzb.work_directory))
       @tmp_file.write(data)

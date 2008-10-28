@@ -61,6 +61,10 @@ class NZB
       @ready
     end
     
+    def current_file
+      @file
+    end
+    
     def receive_data(data)
       log "Received data: #{data}"
       
@@ -111,6 +115,7 @@ class NZB
     end
     
     def unbind
+      @file.requeue! if @file
       puts "Closing connection."
       NZB::Connection.connection_closed(self)
     end

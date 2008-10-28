@@ -3,18 +3,13 @@ require 'nzb/file'
 
 describe "NZB::File" do
   before do
-    output_directory = File.join(TMP_DIR, 'name_of_nzb')
-    work_directory = File.join(output_directory, '.work')
-    FileUtils.mkdir_p(work_directory)
-    
-    @nzb = stub('NZB')
-    @nzb.stubs(:run_update_callback!)
-    @nzb.stubs(:output_directory).returns(output_directory)
-    @nzb.stubs(:work_directory).returns(work_directory)
-    
-    @file = NZB::File.new(@nzb)
+    @file = NZB::File.new(nil)
     @file.add_segment('message_id' => '1', 'bytes' => '1')
     @file.add_segment('message_id' => '2', 'bytes' => '2')
+    NZB::Parser.any_instance.stubs(:files).returns([@file])
+    
+    @nzb = NZB.new(fixture('small.nzb'))
+    @file.instance_variable_set(:@nzb, @nzb)
   end
   
   after do
@@ -95,5 +90,17 @@ describe "NZB::File" do
     segment = @file.request_job
     @file.write_data ""
     @file.downloaded_bytes.should == segment.bytes
+  end
+  
+  it "should requeue the currently processing segment" do
+    segment = @file.request_job
+    @file.requeue!
+    @file.request_job.should.be segment
+  end
+  
+  it "should requeue this file with the NZB owner instance" do
+    @nzb.request_file.should == @file
+    @file.requeue!
+    @nzb.request_file.should == @file
   end
 end

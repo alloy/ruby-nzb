@@ -57,6 +57,11 @@ class NZB
     @queue.shift
   end
   
+  def requeue(file)
+    puts "Requeing file."
+    @queue.unshift file
+  end
+  
   def done?
     @queue.empty?
   end

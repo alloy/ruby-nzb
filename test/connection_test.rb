@@ -111,6 +111,20 @@ describe "NZB::Connection" do
     NZB::Connection.pool.should.not.include connection
   end
   
+  it "should requeue the currently processing NZB::File instance if the connection terminated unexpectedly" do
+    connect! do
+      def connection.receive_data(data)
+        if @second_time
+          close_connection
+        else
+          @second_time = true
+          super
+        end
+      end
+    end
+    @nzb.request_file.should == @nzb.files.first
+  end
+  
   it "should start an EventMachine runloop" do
     NZB.blocking = true
     Thread.expects(:new).never

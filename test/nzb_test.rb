@@ -142,4 +142,10 @@ describe "NZB instance" do
     @nzb.stubs(:downloaded_bytes).returns(200)
     @nzb.downloaded_percentage.should == 100
   end
+  
+  it "should requeue a file" do
+    file = @nzb.request_file
+    @nzb.requeue file
+    @nzb.request_file.should == file
+  end
 end
