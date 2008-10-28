@@ -75,8 +75,17 @@ class NZB
       end
     end
     
+    # Start of data:
+    # 222 0 <1224818241.27404.1@europe.news.astraweb.com> body\r\n
+    # =ybegin part=1 total=39 line=128 size=15000000 name=name_of_the_file.zip\r\n
+    # =ypart begin=1 end=386000\r\n
+    # 
+    # End of data:
+    # yend size=386000 part=1 pcrc32=d94a027f\r\n.\r\n
     def unescape_data!
       @data.gsub!(/\r\n\.\./, "\r\n.")
+      # @data.gsub!(/^222.+end=\d+\r\n/m, '')
+      # @data.gsub!(/\r\n=yend.+\r\n\.\r\n$/, '')
     end
     
     def log(str)

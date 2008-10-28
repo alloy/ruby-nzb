@@ -39,7 +39,13 @@ class NZB
       @tmp_file ||= Tempfile.new(object_id)
       @tmp_file.write(data)
       
-      @downloaded_bytes += data.length
+      # FIXME: This is cheating, as we use the bytes from the segment,
+      # rather then data.length. There's a discrepancy between the bytes
+      # from the nzb xml file and what we actually get.
+      # For now it's good enough.
+      @downloaded_bytes += @processing.bytes
+      
+      # FIXME: This might need to be deferred
       @nzb.run_update_callback!
       
       if done?
