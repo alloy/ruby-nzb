@@ -1,4 +1,8 @@
-* Don't make any new connections when the NZB queue is empty.
+* Add naive par post processor, as in just use backticks once download completed.
+* Add stream unrar: http://braiden.org/?p=28
+* NZB::File, first use the “subject” as the file's identifier then once the first segment of a file has been downloaded, parse the real file name out of it.
+* NZB::File separate par files from other files, by first naively trying to parse the file name from the file's subject later on this should be improved by downloading the first segment of each file to get the real filenames.
+* Add smart parring, which means; first download the .par2 file, then start downloading the regular files and for each downloaded file use the .par2 file to check if we need more blocks, if so then move the par with the necessary blocks from the par hold queue to the actual queue. This is so we download just enough par files.
 * Add some callback for when the NZB queue is empty, so done. So the command line client can quit.
 * Need to add a way to resume. Maybe marshal dump the NZB instances to their work directories
   ad reload those if they exist.
