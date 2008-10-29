@@ -6,6 +6,9 @@ class NZB
   class << self
     attr_accessor :host, :port, :pool_size, :output_directory, :blocking
     
+    attr_accessor :logger
+    require 'nzb/logger'
+    
     def setup(options)
       ({ :port => 119, :pool_size => 1, :blocking => true }.merge(options)).each { |key, value| send("#{key}=", value) }
     end
@@ -62,7 +65,7 @@ class NZB
   end
   
   def requeue(file)
-    puts "Requeing file."
+    logger.info "Requeing file."
     @queue.unshift file
   end
   

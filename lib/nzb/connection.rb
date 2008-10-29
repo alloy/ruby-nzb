@@ -16,10 +16,8 @@ class NZB
       def fill_pool!
         max = (NZB.number_of_queued_files < NZB.pool_size) ? NZB.number_of_queued_files : NZB.pool_size
         needed = (max - pool.length)
-        puts "Need connections: #{needed}"
-        needed.times do
-          pool << connect(NZB.host, NZB.port)
-        end
+        logger.debug "Need #{needed} connections"
+        needed.times { pool << connect(NZB.host, NZB.port) }
       end
       
       def connect(host, port)
@@ -56,8 +54,7 @@ class NZB
       super
       @ready = false
       @data = ''
-      
-      puts "Opening connection."
+      logger.debug "Connection: opening"
     end
     
     def ready?
@@ -69,18 +66,20 @@ class NZB
     end
     
     def receive_data(data)
-      log "Received data: #{data}"
+      if data =~ /^(\d{3}\s.+)\r\n/
+        logger.debug $1
+      end
       
       if !ready?
-        if data =~ /^200\s/
-          log "Ready"
+        if data =~ /^(200\s.+)\r\n/
+          logger.debug "Ready: #{$1}"
           @ready = true
           request_job
         end
       else
         @data << data
         if data =~ END_OF_MESSAGE
-          log "Writing data"
+          logger.debug "Connection: received all data for segment"
           unescape_data!
           @file.write_data(@data)
           
@@ -97,7 +96,7 @@ class NZB
         @segment = @file.request_job
         
         request = "BODY <#{@segment.message_id}>\r\n"
-        log "Send: #{request}"
+        logger.debug "Connection: send data \"#{request.strip}\""
         send_data request
       else
         close_connection
@@ -113,18 +112,12 @@ class NZB
     # yend size=386000 part=1 pcrc32=d94a027f\r\n.\r\n
     def unescape_data!
       @data.gsub!(/\r\n\.\./, "\r\n.")
-      # @data.gsub!(/^222.+end=\d+\r\n/m, '')
-      # @data.gsub!(/\r\n=yend.+\r\n\.\r\n$/, '')
     end
     
     def unbind
       @file.requeue! if @file
-      puts "Closing connection."
+      logger.debug "Connection: closing"
       NZB::Connection.connection_closed(self)
-    end
-    
-    def log(str)
-      puts "Client: #{str}" if ENV['LOG_DATA'] == 'true'
     end
   end
 end

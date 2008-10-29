@@ -63,12 +63,12 @@ class NZB
     def done_post_processing(output)
       ::File.unlink(@tmp_file.path)
       
-      puts "Done post processing file!"
+      logger.info "Done post processing file!"
       case output
       when /File successfully written/m, /Note: No encoded data found/m
-        puts 'File successfully written'
+        logger.info 'File successfully written'
       else
-        puts "Unknown uudeview output: #{output.inspect}"
+        logger.error "Unknown uudeview output: #{output.inspect}"
       end
     end
     

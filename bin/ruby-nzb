@@ -6,29 +6,38 @@ require 'rubygems'
 require 'nzb'
 require 'optparse'
 
-options = { :blocking => true }
+nzb_options = { :blocking => true }
+ui_options = {}
 
 parser = OptionParser.new do |opts|
   opts.banner = "Usage: #{__FILE__} --server news.example.com --output-directory /path/to/output [options] file1.nzb file2.nzb ..."
   
   opts.on('-s', '--server [HOST]', 'The news server to connect to') do |host|
-    options[:host] = host
+    nzb_options[:host] = host
   end
   
   opts.on('-p', '--port [PORT]', Numeric, 'The port on which to connect to the news server') do |port|
-    options[:port] = port
+    nzb_options[:port] = port
   end
   
   opts.on('-t', '--threads [SIZE]', Numeric, 'The number of simultaneous connections to make to the news server') do |pool_size|
-    options[:pool_size] = pool_size
+    nzb_options[:pool_size] = pool_size
   end
   
   opts.on('-o', '--output-directory [PATH]', 'The directory where the downloads should be stored') do |output_directory|
-    options[:output_directory] = output_directory
+    nzb_options[:output_directory] = output_directory
   end
   
   opts.on('-c', '--disable-curses', 'Disable the usage of Curses and simply prints a line for each status update') do |disable_curses|
-    options[:disable_curses] = disable_curses
+    ui_options[:disable_curses] = disable_curses
+  end
+  
+  opts.on('-l', '--log-file [PATH]', 'Path to where the log should be written') do |log_file|
+    ui_options[:log_file] = log_file
+  end
+  
+  opts.on('-L', '--log-level [LEVEL]', Numeric, 'Sets the log level, ranging from 0 (debug) to 4 (fatal)') do |log_level|
+    ui_options[:log_level] = log_level
   end
 end
 parser.parse!
@@ -38,7 +47,7 @@ def log_message(nzb, message)
 end
 
 begin
-  raise LoadError if options.delete(:disable_curses)
+  raise LoadError if ui_options[:disable_curses]
   
   require 'curses'
   require 'set'
@@ -64,8 +73,12 @@ rescue LoadError
   end
 end
 
-if options[:host] and options[:output_directory] and !ARGV.empty?
-  NZB.setup(options)
+if nzb_options[:host] and nzb_options[:output_directory] and !ARGV.empty?
+  NZB.logger = Logger.new(ui_options[:log_file]) if ui_options[:log_file]
+  NZB.logger.level = ui_options[:log_level] if ui_options[:log_level]
+  
+  NZB.setup(nzb_options)
+  
   ARGV.each do |nzb_file|
     NZB.queue(nzb_file).on_update do |nzb|
       log(nzb, "#{ '%0.2f' % nzb.downloaded_percentage }%")
