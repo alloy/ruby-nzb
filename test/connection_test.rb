@@ -2,8 +2,6 @@ require File.expand_path('../test_helper', __FILE__)
 require 'nzb'
 require 'nzb/connection'
 
-#ENV['LOG_DATA'] = 'true' if $0 == __FILE__
-
 class TestNNTPServer < EM::Connection
   Localhost = "127.0.0.1"
   Localport = 1119
