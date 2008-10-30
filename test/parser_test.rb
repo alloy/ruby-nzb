@@ -54,6 +54,10 @@ describe "NZB::Parser" do
   it "should have initialized all NZB::File instances with the NZB instance as their owner" do
     @parser.files.all? { |file| file.nzb == @nzb }.should.be true
   end
+  
+  it "should have parsed out the subjects" do
+    @parser.files.map { |file| file.subject }.should == ['File with 1 segment', 'File with 3 segments']
+  end
 end
 
 describe "NZB::Parser, with a real NZB file" do

@@ -16,12 +16,12 @@ class NZB
       end
     end
     
-    def tag_start(name, attrs)
+    def tag_start(name, attributes)
       case name
-      when 'segments'
-        @files << NZB::File.new(@nzb)
+      when 'file'
+        @files << NZB::File.new(@nzb, attributes)
       when 'segment'
-        @segment = @files.last.add_segment(attrs)
+        @segment = @files.last.add_segment(attributes)
       end
     end
     

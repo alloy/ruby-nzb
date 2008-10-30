@@ -3,12 +3,13 @@ require 'tempfile'
 
 class NZB
   class File
-    attr_reader :nzb, :segments, :queue, :processing, :tmp_file, :downloaded_bytes, :name
+    attr_reader :nzb, :segments, :queue, :processing, :tmp_file, :downloaded_bytes, :name, :subject
     
-    def initialize(nzb)
+    def initialize(nzb, attributes = {})
       @nzb = nzb
       @segments, @queue = [], []
       @downloaded_bytes = 0
+      @subject = attributes['subject'] || ''
     end
     
     # User callback?
