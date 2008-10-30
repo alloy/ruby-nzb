@@ -75,7 +75,7 @@ end
 
 if nzb_options[:host] and nzb_options[:output_directory] and !ARGV.empty?
   NZB.logger = Logger.new(ui_options[:log_file]) if ui_options[:log_file]
-  NZB.logger.level = ui_options[:log_level] if ui_options[:log_level]
+  NZB.logger.level = ui_options[:log_level] || Logger::INFO
   
   NZB.setup(nzb_options)
   

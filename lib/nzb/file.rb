@@ -3,7 +3,7 @@ require 'tempfile'
 
 class NZB
   class File
-    attr_reader :nzb, :segments, :queue, :processing, :tmp_file, :downloaded_bytes
+    attr_reader :nzb, :segments, :queue, :processing, :tmp_file, :downloaded_bytes, :name
     
     def initialize(nzb)
       @nzb = nzb
@@ -11,8 +11,16 @@ class NZB
       @downloaded_bytes = 0
     end
     
+    # User callback?
+    def name=(name)
+      unless @name
+        @name = name
+        logger.info "Filename: #{@name}"
+      end
+    end
+    
     def ==(other)
-      @segments == other.segments
+      other.respond_to?(:segments) && @segments == other.segments
     end
     
     def done?

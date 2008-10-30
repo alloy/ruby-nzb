@@ -101,12 +101,20 @@ end
 describe "A NZB::Connection instance, when receiving data" do
   before do
     @connection = NZB::Connection.new(nil)
-    @connection.stubs(:request_job)
+    @connection.stubs(:send_data)
+    #@connection.stubs(:close_connection)
     
-    @file = mock('NZB::File')
-    @file.stubs(:done?).returns(false)
-    @file.stubs(:write_data)
-    @connection.instance_variable_set(:@file, @file)
+    @file = NZB::File.new(nil)
+    @file.add_segment('message_id' => '1', 'bytes' => '1')
+    @file.add_segment('message_id' => '2', 'bytes' => '2')
+    NZB::Parser.any_instance.stubs(:files).returns([@file])
+    
+    @nzb = NZB.new(fixture('small.nzb'))
+    @file.instance_variable_set(:@nzb, @nzb)
+    NZB.stubs(:request_file).returns(@file)
+    @file.stubs(:post_process!)
+    
+    @connection.request_job
   end
   
   it "should not be ready after initialization" do
@@ -131,6 +139,11 @@ describe "A NZB::Connection instance, when receiving data" do
   it "should request a job when the connection becomes ready" do
     @connection.expects(:request_job)
     @connection.connection_ready('news.example.com')
+  end
+  
+  it "should set the name of the file on the NZB::File instance when received the data describing the segment" do
+    @connection.receive_data("222 0 <1224548665.67924.23@europe.news.astraweb.com> body\r\n=ybegin line=128 size=123456 name=foo.rar\r\nSome\r\nData\r\n")
+    @file.name.should == 'foo.rar'
   end
   
   it "should keep passing on data to receive_body_data while receiving_body_data?" do
@@ -163,7 +176,8 @@ describe "A NZB::Connection instance, when receiving data" do
   end
   
   it "should set the current file to nil when done with a segment and the file is done too" do
-    @file.stubs(:done?).returns(true)
+    @connection.stubs(:request_job)
+    @connection.current_file.stubs(:done?).returns(true)
     @connection.segment_completed
     @connection.current_file.should.be nil
   end

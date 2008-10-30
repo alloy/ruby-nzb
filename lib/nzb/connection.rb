@@ -50,6 +50,7 @@ class NZB
     
     attr_reader :received_data
     
+    YENC_HEADER = /=ybegin.+name=(.+)\r\n/
     END_OF_MESSAGE = /\r\n\.\r\n/
     
     def initialize(*args)
@@ -84,6 +85,13 @@ class NZB
       end
     end
     
+    # Some sample data:
+    # 222 0 <1224818241.27404.1@europe.news.astraweb.com> body\r\n
+    # =ybegin part=1 total=39 line=128 size=15000000 name=name_of_the_file.zip\r\n
+    # =ypart begin=1 end=386000\r\n
+    # 
+    # End of data:
+    # yend size=386000 part=1 pcrc32=d94a027f\r\n.\r\n
     def receive_data(data)
       return receive_body_data(data) if receiving_body_data?
       
@@ -109,6 +117,9 @@ class NZB
     
     def receive_body_data(data)
       @received_data << data
+      if data =~ YENC_HEADER
+        @file.name = $1
+      end
       if data =~ END_OF_MESSAGE
         @receiving_body_data = false
         segment_completed
@@ -127,13 +138,6 @@ class NZB
       request_job
     end
     
-    # Start of data:
-    # 222 0 <1224818241.27404.1@europe.news.astraweb.com> body\r\n
-    # =ybegin part=1 total=39 line=128 size=15000000 name=name_of_the_file.zip\r\n
-    # =ypart begin=1 end=386000\r\n
-    # 
-    # End of data:
-    # yend size=386000 part=1 pcrc32=d94a027f\r\n.\r\n
     def unescape_data!
       @received_data.gsub!(/\r\n\.\./, "\r\n.")
     end
