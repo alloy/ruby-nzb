@@ -97,3 +97,84 @@ describe "The NZB::Connection class methods" do
     NZB::Connection.start_eventmachine_runloop! {}
   end
 end
+
+describe "A NZB::Connection instance, when receiving data" do
+  before do
+    @connection = NZB::Connection.new(nil)
+    @connection.stubs(:request_job)
+    
+    @file = mock('NZB::File')
+    @file.stubs(:done?).returns(false)
+    @file.stubs(:write_data)
+    @connection.instance_variable_set(:@file, @file)
+  end
+  
+  it "should not be ready after initialization" do
+    @connection.should.not.be.ready
+    @connection.should.not.be.receiving_body_data
+  end
+  
+  it "should act appropriately on the received status codes" do
+    @connection.expects(:connection_ready).with('news.tweakdsl.nl NNRP Service Ready - info@tweakdsl.nl (posting ok).')
+    @connection.receive_data("200 news.tweakdsl.nl NNRP Service Ready - info@tweakdsl.nl (posting ok).\r\n")
+    
+    @connection.expects(:receive_body_data).with("Some\r\nData\r\n")
+    @connection.receive_data("222 0 <1224548665.67924.23@europe.news.astraweb.com> body\r\nSome\r\nData\r\n")
+    @connection.should.be.receiving_body_data
+  end
+  
+  it "should log any status codes that are unimplemented" do
+    @connection.logger.expects(:error).with("Connection [#{@connection.object_id}]: UNIMPLEMENTED STATUS CODE: 430 - no such article")
+    @connection.receive_data("430 no such article\r\n")
+  end
+  
+  it "should request a job when the connection becomes ready" do
+    @connection.expects(:request_job)
+    @connection.connection_ready('news.example.com')
+  end
+  
+  it "should keep passing on data to receive_body_data while receiving_body_data?" do
+    @connection.receive_data("222 0 <1224548665.67924.23@europe.news.astraweb.com> body\r\nSome\r\nData\r\n")
+    @connection.receive_data("And\r\nSome\r\nMore\r\nData\r\n")
+    @connection.received_data.should == "Some\r\nData\r\nAnd\r\nSome\r\nMore\r\nData\r\n"
+  end
+  
+  it "should call segment_completed when the end of a multi part message has been reached" do
+    @connection.instance_variable_set(:@receiving_body_data, true)
+    @connection.expects(:segment_completed)
+    @connection.receive_data("Some\r\Last\r\nData\r\n.\r\n")
+    @connection.received_data.should == "Some\r\Last\r\nData\r\n.\r\n"
+    @connection.should.not.be.receiving_body_data
+  end
+  
+  it "should call segment_completed when the end of a single part message has been reached" do
+    @connection.expects(:segment_completed)
+    @connection.receive_data("222 blah\r\nSome\r\Last\r\nData\r\n.\r\n")
+    @connection.received_data.should == "Some\r\Last\r\nData\r\n.\r\n"
+    @connection.should.not.be.receiving_body_data
+  end
+  
+  it "should pass all received_data back to the NZB::File instance when the segment completed and request a new job" do
+    @connection.instance_variable_set(:@received_data, "Some\r\nData\r\n.\r\n")
+    @connection.current_file.expects(:write_data).with("Some\r\nData\r\n.\r\n")
+    @connection.expects(:request_job)
+    @connection.segment_completed
+    @connection.received_data.should == ''
+  end
+  
+  it "should set the current file to nil when done with a segment and the file is done too" do
+    @file.stubs(:done?).returns(true)
+    @connection.segment_completed
+    @connection.current_file.should.be nil
+  end
+  
+  it "should not set the current file to nil when done with a segment but the file isn't done yet" do
+    @file.stubs(:done?).returns(false)
+    @connection.segment_completed
+    @connection.current_file.should.be @file
+  end
+  
+  xit "should unescape the data" do
+    
+  end
+end

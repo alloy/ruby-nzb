@@ -48,47 +48,27 @@ class NZB
       end
     end
     
+    attr_reader :received_data
+    
     END_OF_MESSAGE = /\r\n\.\r\n/
     
     def initialize(*args)
       super
-      @ready = false
-      @data = ''
-      logger.debug "Connection: opening"
-    end
-    
-    def ready?
-      @ready
+      @ready = @receiving_body_data = false
+      @received_data = ''
+      log "opening"
     end
     
     def current_file
       @file
     end
     
-    def receive_data(data)
-      if data =~ /^(\d{3}\s.+)\r\n/
-        logger.debug $1
-      end
-      
-      if !ready?
-        if data =~ /^(200\s.+)\r\n/
-          logger.debug "Ready: #{$1}"
-          @ready = true
-          request_job
-        end
-      else
-        @data << data
-        if data =~ END_OF_MESSAGE
-          logger.debug "Connection: received all data for segment"
-          unescape_data!
-          @file.write_data(@data)
-          
-          @file = nil if @file.done?
-          @data = ''
-          
-          request_job
-        end
-      end
+    def ready?
+      @ready
+    end
+    
+    def receiving_body_data?
+      @receiving_body_data
     end
     
     def request_job
@@ -96,11 +76,55 @@ class NZB
         @segment = @file.request_job
         
         request = "BODY <#{@segment.message_id}>\r\n"
-        logger.debug "Connection: send data \"#{request.strip}\""
+        log("send request: \"#{request.strip}\"")
         send_data request
       else
+        log "no more jobs"
         close_connection
       end
+    end
+    
+    def receive_data(data)
+      return receive_body_data(data) if receiving_body_data?
+      
+      if data =~ /^(\d{3})\s(.+?)\r\n(.*)/m
+        log("#{$1} #{$2}")
+        case $1
+        when '200'
+          @ready = true
+          connection_ready($2)
+        when '222'
+          @receiving_body_data = true
+          receive_body_data($3)
+        else
+          log("UNIMPLEMENTED STATUS CODE: #{$1} - #{$2}", :error)
+        end
+      end
+    end
+    
+    # User callback?
+    def connection_ready(message)
+      request_job
+    end
+    
+    def receive_body_data(data)
+      @received_data << data
+      if data =~ END_OF_MESSAGE
+        @receiving_body_data = false
+        segment_completed
+      end
+    end
+    
+    # User callback?
+    def segment_completed
+      log "received all data for segment"
+      unescape_data!
+      @file.write_data(@received_data)
+      
+      @file = nil if @file.done?
+      @received_data = ''
+      
+      request_job
     end
     
     # Start of data:
@@ -111,13 +135,17 @@ class NZB
     # End of data:
     # yend size=386000 part=1 pcrc32=d94a027f\r\n.\r\n
     def unescape_data!
-      @data.gsub!(/\r\n\.\./, "\r\n.")
+      @received_data.gsub!(/\r\n\.\./, "\r\n.")
     end
     
     def unbind
       @file.requeue! if @file
-      logger.debug "Connection: closing"
+      log('closing')
       NZB::Connection.connection_closed(self)
+    end
+    
+    def log(message, level = :debug)
+      logger.send(level, "Connection [#{object_id}]: #{message}")
     end
   end
 end

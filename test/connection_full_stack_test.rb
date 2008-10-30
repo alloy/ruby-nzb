@@ -40,7 +40,7 @@ class TestNNTPServer < EM::Connection
   end
   
   def log(str)
-    puts "Server: #{str}" if ENV['LOG_DATA'] == 'true'
+    logger.debug "TestServer: #{str}"
   end
 end
 
@@ -67,7 +67,7 @@ describe "NZB::Connection" do
   end
   
   it "should send the received data back to the NZB::File instance that's being processed, once a full segment has been received" do
-    data = "=yenc begin\r\nSome yEnc encoded data from segment %s\r\n..This double dot should become one.. However that last double dot should stay.\r\n=yenc end\r\n.\r\n"
+    data = "222 blah\r\n=yenc begin\r\nSome yEnc encoded data from segment %s\r\n..This double dot should become one.. However that last double dot should stay.\r\n=yenc end\r\n.\r\n"
     
     message_ids = %w{ file-1@segment-1 file-1@segment-2 file-2@segment-1 file-2@segment-2 }
     responses = message_ids.inject({}) do |hash, message_id|
@@ -77,13 +77,13 @@ describe "NZB::Connection" do
     
     message_ids.first(2).each do |message_id|
       @nzb.files.first.expects(:write_data).with do |data|
-        data == responses[message_id].sub(/\r\n\.\./, "\r\n.")
+        data == responses[message_id].sub("222 blah\r\n", '').sub(/\r\n\.\./, "\r\n.")
       end
     end
     
     message_ids.last(2).each do |message_id|
       @nzb.files.last.expects(:write_data).with do |data|
-        data == responses[message_id].sub(/\r\n\.\./, "\r\n.")
+        data == responses[message_id].sub("222 blah\r\n", '').sub(/\r\n\.\./, "\r\n.")
       end
     end
     
