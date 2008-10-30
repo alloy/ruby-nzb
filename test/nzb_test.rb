@@ -3,7 +3,7 @@ require 'nzb'
 
 describe "NZB class" do
   before do
-    @nzb = NZB.queue(fixture('ubuntu.nzb'))
+    @nzb = NZB.queue(fixture('medium.nzb'))
   end
   
   after do
@@ -27,8 +27,8 @@ describe "NZB class" do
   end
   
   it "should add a new NZB to the queue" do
-    nzb = NZB.queue(fixture('ubuntu.nzb'))
-    nzb.path.should == fixture('ubuntu.nzb')
+    nzb = NZB.queue(fixture('medium.nzb'))
+    nzb.path.should == fixture('medium.nzb')
     NZB.queued.last.should.be nzb
   end
   
@@ -64,7 +64,7 @@ end
 
 describe "NZB instance" do
   before do
-    @nzb = NZB.new(fixture('ubuntu.nzb'))
+    @nzb = NZB.new(fixture('medium.nzb'))
   end
   
   after do
@@ -72,11 +72,11 @@ describe "NZB instance" do
   end
   
   it "should initialize with a path to a NZB xml file" do
-    @nzb.path.should == fixture('ubuntu.nzb')
+    @nzb.path.should == fixture('medium.nzb')
   end
   
   it "should return the output and work directory" do
-    @nzb.output_directory.should == File.join(TMP_DIR, 'ubuntu')
+    @nzb.output_directory.should == File.join(TMP_DIR, 'medium')
     @nzb.work_directory.should == File.join(@nzb.output_directory, '.work')
   end
   

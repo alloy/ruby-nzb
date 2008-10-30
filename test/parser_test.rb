@@ -62,7 +62,7 @@ end
 
 describe "NZB::Parser, with a real NZB file" do
   before do
-    @path = fixture('ubuntu.nzb')
+    @path = fixture('medium.nzb')
     @nzb = stub('NZB')
     @nzb.stubs(:path).returns(@path)
     @parser = NZB::Parser.new(@nzb)
