@@ -1,7 +1,6 @@
 * Add naive par post processor, as in just use backticks once download completed.
-* Add stream unrar: http://braiden.org/?p=28
-* NZB::File, first use the “subject” as the file's identifier then once the first segment of a file has been downloaded,
-  parse the real file name out of it.
+* Add stream unrar: http://braiden.org/?p=11
+* NZB::File, first use the “subject” as the file's identifier.
 * NZB::File separate par files from other files, by first naively trying to parse the file name from the file's subject
   later on this should be improved by downloading the first segment of each file to get the real filenames.
 * Add smart parring, which means; first download the .par2 file, then start downloading the regular files and for each
