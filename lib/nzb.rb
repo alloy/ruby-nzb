@@ -43,7 +43,7 @@ class NZB
   def initialize(path)
     @path = path
     @files = Parser.new(self).files
-    @queue = @files.dup
+    @queue = smart_repair_sort(@files.dup)
     
     unless ::File.exist?(output_directory)
       FileUtils.mkdir_p(output_directory)
@@ -91,5 +91,18 @@ class NZB
   
   def run_update_callback!
     @on_update_callback.call(self) if @on_update_callback
+  end
+  
+  def smart_repair_sort(files)
+    par2 = nil
+    files.each do |file|
+      if file.par2?
+        par2 = file
+        break
+      end
+    end
+    files.unshift(files.delete(par2)) if par2
+    
+    files
   end
 end

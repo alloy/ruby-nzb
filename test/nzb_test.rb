@@ -162,3 +162,13 @@ describe "NZB instance" do
     @nzb.request_file.should == file
   end
 end
+
+describe "A NZB instance, when trying to perform smart repairing" do
+  before do
+    @nzb = NZB.new(fixture('large.nzb'))
+  end
+  
+  it "should have requeued the files so a par2 file gets downloaded first" do
+    @nzb.queue.first.should.be.par2
+  end
+end

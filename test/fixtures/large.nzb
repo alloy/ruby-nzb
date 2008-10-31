@@ -1,14 +1,6 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 <!DOCTYPE nzb PUBLIC "-//newzBin//DTD NZB 0.9//EN" "http://www.newzbin.com/DTD/nzb/nzb-0.9.dtd">
 <nzb xmlns="http://www.newzbin.com/DTD/2003/nzb">
-	<file poster="am9295@ftd.nu am9295" date="1225387392" subject="am9295 post Ubuntu 8.10 Desktop i386 [FTD#805887].[01/25] - &quot;Ubuntu 8.10 desktop i386.par2&quot; yEnc (1/1)">
-	<groups>
-		<group>alt.binaries.boneless</group>
-	</groups>
-	<segments>
-		<segment bytes="43997" number="1">part1of1.2DL5focSEp$YMQ$Em1HX@powerpost2000AA.local</segment>
-	</segments>
-	</file>
 	<file poster="am9295@ftd.nu am9295" date="1225387401" subject="am9295 post Ubuntu 8.10 Desktop i386 [FTD#805887].[03/25] - &quot;Ubuntu 8.10 desktop i386.part02.rar&quot; yEnc (1/201)">
 	<groups>
 		<group>alt.binaries.boneless</group>
@@ -3014,6 +3006,14 @@
 		<segment bytes="58584" number="79">part79of79.kaVLS0Rm$4hEC44KLKwd@powerpost2000AA.local</segment>
 		<segment bytes="258333" number="77">part77of79.kaVLS0Rm$4hEC44KLKwd@powerpost2000AA.local</segment>
 		<segment bytes="258375" number="78">part78of79.kaVLS0Rm$4hEC44KLKwd@powerpost2000AA.local</segment>
+	</segments>
+	</file>
+	<file poster="am9295@ftd.nu am9295" date="1225387392" subject="am9295 post Ubuntu 8.10 Desktop i386 [FTD#805887].[01/25] - &quot;Ubuntu 8.10 desktop i386.par2&quot; yEnc (1/1)">
+	<groups>
+		<group>alt.binaries.boneless</group>
+	</groups>
+	<segments>
+		<segment bytes="43997" number="1">part1of1.2DL5focSEp$YMQ$Em1HX@powerpost2000AA.local</segment>
 	</segments>
 	</file>
 	<file poster="am9295@ftd.nu am9295" date="1225393607" subject="am9295 post Ubuntu 8.10 Desktop i386 [FTD#805887].[17/25] - &quot;Ubuntu 8.10 desktop i386.vol000+001.PAR2&quot; yEnc (1/2)">

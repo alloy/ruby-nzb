@@ -25,6 +25,10 @@ class NZB
       other.respond_to?(:segments) && @segments == other.segments
     end
     
+    def inspect
+      "#<NZB::File:#{object_id} subject=\"#{@subject}\">"
+    end
+    
     def done?
       @queue.empty?
     end
