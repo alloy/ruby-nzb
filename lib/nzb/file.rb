@@ -1,3 +1,4 @@
+require 'nzb/file_types'
 require 'nzb/segment'
 require 'tempfile'
 
