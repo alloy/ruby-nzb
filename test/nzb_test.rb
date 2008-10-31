@@ -171,4 +171,14 @@ describe "A NZB instance, when trying to perform smart repairing" do
   it "should have requeued the files so a par2 file gets downloaded first" do
     @nzb.queue.first.should.be.par2
   end
+  
+  it "should have put any par2 blocks files in a par2_blocks_queue" do
+    number_of_par2_blocks_files = @nzb.files.inject(0) { |sum, file| file.par2_blocks? ? sum + 1 : sum }
+    
+    @nzb.queue.length.should == @nzb.files.length - number_of_par2_blocks_files
+    @nzb.queue.any? { |file| file.par2_blocks? }.should.be false
+    
+    @nzb.par2_blocks_queue.length.should == number_of_par2_blocks_files
+    @nzb.par2_blocks_queue.all? { |file| file.par2_blocks? }.should.be true
+  end
 end

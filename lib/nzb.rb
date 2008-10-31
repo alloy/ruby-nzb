@@ -38,12 +38,16 @@ class NZB
     end
   end
   
-  attr_reader :path, :files, :queue, :on_update_callback
+  attr_reader :path, :files, :queue, :par2_blocks_queue, :on_update_callback
   
   def initialize(path)
     @path = path
+    
     @files = Parser.new(self).files
-    @queue = smart_repair_sort(@files.dup)
+    
+    @queue = []
+    @par2_blocks_queue = []
+    smart_queue!
     
     unless ::File.exist?(output_directory)
       FileUtils.mkdir_p(output_directory)
@@ -93,16 +97,15 @@ class NZB
     @on_update_callback.call(self) if @on_update_callback
   end
   
-  def smart_repair_sort(files)
-    par2 = nil
-    files.each do |file|
+  def smart_queue!
+    @files.each do |file|
       if file.par2?
-        par2 = file
-        break
+        @queue.unshift(file)
+      elsif file.par2_blocks?
+        @par2_blocks_queue << file
+      else
+        @queue << file
       end
     end
-    files.unshift(files.delete(par2)) if par2
-    
-    files
   end
 end
