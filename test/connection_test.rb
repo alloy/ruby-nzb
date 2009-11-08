@@ -98,24 +98,29 @@ describe "The NZB::Connection class methods" do
   end
 end
 
-describe "A NZB::Connection instance, when receiving data" do
-  before do
-    @connection = NZB::Connection.new(nil)
-    @connection.stubs(:send_data)
-    #@connection.stubs(:close_connection)
-    
-    @file = NZB::File.new(nil)
-    @file.add_segment('message_id' => '1', 'bytes' => '1')
-    @file.add_segment('message_id' => '2', 'bytes' => '2')
-    NZB::Parser.any_instance.stubs(:files).returns([@file])
-    
-    @nzb = NZB.new(fixture('small.nzb'))
-    @file.instance_variable_set(:@nzb, @nzb)
-    NZB.stubs(:request_file).returns(@file)
-    @file.stubs(:post_process!)
-    
-    @connection.request_job
+module ConnectionInstanceHelper
+  def self.included(test)
+    test.before do
+      @connection = NZB::Connection.new(nil)
+      @connection.stubs(:send_data)
+      
+      @file = NZB::File.new(nil)
+      @file.add_segment('message_id' => '1', 'bytes' => '1')
+      @file.add_segment('message_id' => '2', 'bytes' => '2')
+      NZB::Parser.any_instance.stubs(:files).returns([@file])
+      
+      @nzb = NZB.new(fixture('small.nzb'))
+      @file.instance_variable_set(:@nzb, @nzb)
+      NZB.stubs(:request_file).returns(@file)
+      @file.stubs(:post_process!)
+      
+      @connection.request_job
+    end
   end
+end
+
+describe "A NZB::Connection instance, when receiving data" do
+  include ConnectionInstanceHelper
   
   it "should not be ready after initialization" do
     @connection.should.not.be.ready
@@ -187,8 +192,31 @@ describe "A NZB::Connection instance, when receiving data" do
     @connection.segment_completed
     @connection.current_file.should.be @file
   end
+end
+
+describe "A NZB::Connection instance, concerning authentication" do
+  before do
+    NZB.stubs(:user).returns('joe')
+    NZB.stubs(:password).returns('secret')
+  end
   
-  xit "should unescape the data" do
-    
+  include ConnectionInstanceHelper
+  
+  it "should respond to an `authentication request'" do
+    @connection.expects(:send_data).with("AUTHINFO USER joe\r\n")
+    @connection.expects(:send_data).with("AUTHINFO PASS secret\r\n")
+    2.times { @connection.receive_data("381 blah\r\n.\r\n") }
+  end
+  
+  it "should start requesting jobs once authenticated" do
+    @connection.expects(:request_job)
+    @connection.receive_data("281 blah\r\n.\r\n")
+  end
+  
+  it "should raise an exception if authentication is requested but no credentials were given" do
+    @connection.instance_variable_set(:@authinfo_commands, nil)
+    lambda {
+      @connection.receive_data("381 blah\r\n.\r\n")
+    }.should.raise NZB::Connection::NeedsAuthentication
   end
 end

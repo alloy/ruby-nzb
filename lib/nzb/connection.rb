@@ -3,6 +3,8 @@ require 'eventmachine'
 
 class NZB
   class Connection < EventMachine::Connection
+    class NeedsAuthentication < StandardError; end
+    
     class << self
       def pool
         @pool ||= []
@@ -56,10 +58,7 @@ class NZB
     def initialize(*args)
       super
       @ready = @receiving_body_data = false
-      if NZB.user && NZB.password
-        @authinfo_commands = ["AUTHINFO USER #{NZB.user}\r\n", "AUTHINFO PASS #{NZB.password}\r\n"]
-        @need_to_authenticate = true
-      end
+      setup_authentication
       @received_data = ''
       log "opening"
     end
@@ -76,10 +75,21 @@ class NZB
       @receiving_body_data
     end
     
-    def authenticate
-      send_data @authinfo_commands.shift unless @authinfo_commands.empty?
+    def setup_authentication
+      if NZB.user && NZB.password
+        @authinfo_commands = ["AUTHINFO USER #{NZB.user}\r\n", "AUTHINFO PASS #{NZB.password}\r\n"]
+        @need_to_authenticate = true
+      end
     end
-
+    
+    def authenticate
+      if @authinfo_commands && !@authinfo_commands.empty?
+        send_data @authinfo_commands.shift
+      else
+        raise NeedsAuthentication
+      end
+    end
+    
     def request_job
       if @file ||= NZB.request_file
         @segment = @file.request_job
