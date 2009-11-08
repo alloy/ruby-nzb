@@ -20,6 +20,14 @@ parser = OptionParser.new do |opts|
     nzb_options[:port] = port
   end
   
+  opts.on('-u', '--user [username]', 'The username to authenticate with the news server') do |port|
+    nzb_options[:user] = port
+  end
+  
+  opts.on('-P', '--password [PORT]', 'The password to authenticate with the news server') do |port|
+    nzb_options[:password] = port
+  end
+  
   opts.on('-t', '--threads [SIZE]', Numeric, 'The number of simultaneous connections to make to the news server') do |pool_size|
     nzb_options[:pool_size] = pool_size
   end

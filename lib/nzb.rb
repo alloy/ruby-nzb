@@ -4,7 +4,7 @@ require 'fileutils'
 
 class NZB
   class << self
-    attr_accessor :host, :port, :pool_size, :output_directory, :blocking
+    attr_accessor :host, :port, :pool_size, :output_directory, :blocking, :user, :password
     
     attr_accessor :logger
     require 'nzb/logger'

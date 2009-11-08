@@ -56,6 +56,10 @@ class NZB
     def initialize(*args)
       super
       @ready = @receiving_body_data = false
+      if NZB.user && NZB.password
+        @authinfo_commands = ["AUTHINFO USER #{NZB.user}\r\n", "AUTHINFO PASS #{NZB.password}\r\n"]
+        @need_to_authenticate = true
+      end
       @received_data = ''
       log "opening"
     end
@@ -72,6 +76,10 @@ class NZB
       @receiving_body_data
     end
     
+    def authenticate
+      send_data @authinfo_commands.shift unless @authinfo_commands.empty?
+    end
+
     def request_job
       if @file ||= NZB.request_file
         @segment = @file.request_job
@@ -104,6 +112,12 @@ class NZB
         when '222'
           @receiving_body_data = true
           receive_body_data($3)
+        when '381'
+          @need_to_authenticate = true
+          connection_ready($2)
+        when '281'
+          @need_to_authenticate = false
+          connection_ready($2)
         else
           log("UNIMPLEMENTED STATUS CODE: #{$1} - #{$2}", :error)
         end
@@ -112,7 +126,11 @@ class NZB
     
     # User callback?
     def connection_ready(message)
-      request_job
+      if @need_to_authenticate
+        authenticate
+      else
+        request_job
+      end
     end
     
     def receive_body_data(data)
